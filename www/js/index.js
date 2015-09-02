@@ -38,8 +38,21 @@ var app = {
             $('#deviceready').append('<p id="jquery_wrapper">jQuery Loaded...</p>');
             $('#jquery_wrapper').click(function(){
                $(this).text('jQuery Working...'); 
+               $.post("https://api.particle.io/oauth/token",{
+               	client_id : particle, 
+               	client_secret : particle, 
+               	grant_type : password, 
+               	username : travis@controlanything.com, 
+               	password : Spunky11},
+               function(){
+               	console.log("Post request sent");
+               }).success(function(data)){
+               	console.log(data);
+               }).error(function(data){
+               	console.error("POST request error");
+               }
             });
-        })(jQuery)
+        })(jQuery);
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
