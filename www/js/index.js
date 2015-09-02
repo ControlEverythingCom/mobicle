@@ -17,18 +17,19 @@
  * under the License.
  */
 
-function console.log(m){
+console.log=function(m){
     var $=jQuery;
-    if($('#console').length==0){
-        var console=$('<div></div>');
-        console.attr('id', 'console');
-        console.css({position:'fixed', bottom:0, width:'100%', height:'50%', overflow:'auto'});
-        $('body').append(console);
-    }else var console=$('#console');
+    var log=$('#console');
+    if(log.length==0){
+        var log=$('<div></div>');
+        log.attr('id', 'console');
+        log.css({position:'fixed', bottom:0, width:'100%', height:'30%', overflow:'auto', background:'white'});
+        $('body').append(log);
+    }
     var message_wrapper=$('<div class="message"></div>');
     message_wrapper.text(JSON.stringify(m));
-    console.append(message_wrapper);
-    console.scrollTo(console.innerHieght());
+    log.append(message_wrapper);
+    log.scrollTo(log.innerHeight());
 }
 
 var app = {
@@ -54,18 +55,19 @@ var app = {
             $('#jquery_wrapper').click(function(){
                $(this).text('jQuery Working...'); 
                $.post("https://api.particle.io/oauth/token",{
-               	client_id : particle, 
-               	client_secret : particle, 
-               	grant_type : password, 
-               	username : travis@controlanything.com, 
-               	password : Spunky11},
+                   	client_id : 'particle', 
+                   	client_secret : 'particle', 
+                   	grant_type : 'password', 
+                   	username : 'travis@controlanything.com', 
+                   	password : 'Spunky11'
+               },
                function(){
-               	console.log("Post request sent");
-               }).success(function(data)){
-               	console.log(data);
+                   	console.log("Post request sent");
+               }).success(function(data){
+                   	console.log(data);
                }).error(function(data){
-               	console.error("POST request error");
-               }
+                   	console.log("POST request error");
+               });
             });
         })(jQuery);
     },
