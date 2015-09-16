@@ -58,6 +58,7 @@ body {
 #deviceList li{
 	color:red;
 }
+
 #deviceList li.connected{
 	color:green;
 }
