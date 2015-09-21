@@ -77,6 +77,7 @@ function popup() {
 							$.get(deviceInfoURL, function() {
 
 							}).done(function(deviceInfo) {
+								console.log(deviceInfo);
 								$.each(deviceInfo.functions, function() {
 									var deviceFunction = this;
 									var functionLI = $("<li></li>");
@@ -95,6 +96,20 @@ function popup() {
 										}
 									});
 								});
+								var deviceVariables = deviceInfo.variables;
+								console.log(deviceVariables);
+								for(var key in deviceVariables){
+									console.log(key);
+									var variableLI = $('<li></li>');
+									variableLI.appendTo('#deviceVariablesList').attr("id", device.id+key);
+									var variableRequestURL = "https://api.particle.io/v1/devices/" + device.id + "/"+key+"?access_token="+accessToken;
+									$.get(variableRequestURL, function(deviceVar){
+										var varText = deviceVar.name+": "+deviceVar.result;
+										$("li#"+device.id+deviceVar.name).text(varText);
+//										variableLI.text(varText);
+										console.log(varText);
+									});
+								}
 							}).fail(function() {
 								console.log("Failed to load device info");
 							});
