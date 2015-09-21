@@ -98,17 +98,19 @@ function popup() {
 								});
 								var deviceVariables = deviceInfo.variables;
 								console.log(deviceVariables);
-								for(var key in deviceVariables){
+								for (var key in deviceVariables) {
 									console.log(key);
 									var variableLI = $('<li></li>');
-									variableLI.appendTo('#deviceVariablesList').attr("id", device.id+key);
-									var variableRequestURL = "https://api.particle.io/v1/devices/" + device.id + "/"+key+"?access_token="+accessToken;
-									$.get(variableRequestURL, function(deviceVar){
-										var varText = deviceVar.name+": "+deviceVar.result;
-										$("li#"+device.id+deviceVar.name).text(varText);
-//										variableLI.text(varText);
+									variableLI.appendTo('#deviceVariablesList').attr("id", device.id + key);
+									var variableRequestURL = "https://api.particle.io/v1/devices/" + device.id + "/" + key + "?access_token=" + accessToken;
+									$.get(variableRequestURL, function(deviceVar) {
+										var varText = deviceVar.name + ": " + deviceVar.result;
+										$("li#" + device.id + deviceVar.name).text(varText);
 										console.log(varText);
 									});
+									window.setInterval(function(){
+										reloadDeviceVariables(variableRequestURL);
+									},2000);
 								}
 							}).fail(function() {
 								console.log("Failed to load device info");
@@ -137,6 +139,17 @@ function popup() {
 		});
 	});
 
+	function reloadDeviceVariables(url) {
+		var args = url.split("/");
+		var deviceID = args[5];
+		console.log("Device ID: "+deviceID);
+		$.get(url, function(deviceVar) {
+			var varText = deviceVar.name + ": " + deviceVar.result;
+			$("li#" + deviceID + deviceVar.name).text(varText);
+			console.log(varText);
+		});
+	}
+
 	function reloadDevices(url) {
 		$.get(url, function() {
 		}).done(function(devices) {
@@ -145,10 +158,10 @@ function popup() {
 			$.each(devices, function() {
 				var device = this;
 				if (device.connected == true) {
-					$('#'+device.id).addClass('connected');
+					$('#' + device.id).addClass('connected');
 				} else {
 					//Device not connected so we really dont need to do anything but display it to the user.
-					$('#'+device.id).removeClass('connected');
+					$('#' + device.id).removeClass('connected');
 				}
 
 			});
