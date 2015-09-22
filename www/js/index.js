@@ -108,10 +108,25 @@ function popup() {
 										$("li#" + device.id + deviceVar.name).text(varText);
 										console.log(varText);
 									});
-									window.setInterval(function(){
+									window.setInterval(function() {
 										reloadDeviceVariables(variableRequestURL);
-									},2000);
+									}, 2000);
 								}
+								//Register for Server Sent Events
+								var eventSubscribeURL = "https://api.particle.io/v1/devices/" + device.id + "/events?access_token=" + accessToken;
+								var source = new EventSource(eventSubscribeURL);
+								source.onopen = function() {
+									console.log("Server Event stream open");
+									source.addEventListener('Input_1', function(e){
+										var data = JSON.parse(e.data);
+										console.log("Input 1 action");
+										$('#eventLog').append('Input 1: '+data.data +'<br>');
+									}, false);
+								};
+								source.onerror = function(){
+									console.log("error on Server Event Streqm");
+								};
+
 							}).fail(function() {
 								console.log("Failed to load device info");
 							});
@@ -125,7 +140,6 @@ function popup() {
 				window.setInterval(function() {
 					reloadDevices(requestURL);
 				}, 2000);
-				console.log(devices);
 			}).fail(function() {
 				$('#statusLabel').text("Error loading Device List");
 			});
@@ -142,7 +156,7 @@ function popup() {
 	function reloadDeviceVariables(url) {
 		var args = url.split("/");
 		var deviceID = args[5];
-		console.log("Device ID: "+deviceID);
+		console.log("Device ID: " + deviceID);
 		$.get(url, function(deviceVar) {
 			var varText = deviceVar.name + ": " + deviceVar.result;
 			$("li#" + deviceID + deviceVar.name).text(varText);
