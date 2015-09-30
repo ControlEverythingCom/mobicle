@@ -99,7 +99,7 @@ function signIn() {
 								functionLI.appendTo('#deviceFunctionList');
 								if (deviceFunction == "PWMControl") {
 									var input = $('<input></input>');
-									input.attr("type","range").attr("min","1080").attr("max","4095").change(function(){
+									input.attr("type","range").attr("min","1100").attr("max","4095").change(function(){
 										console.log("change function:"+$(this).val());
 										var functionURL = "https://api.particle.io/v1/devices/" + device.id + "/" + deviceFunction;
 										$.post(functionURL, {
