@@ -94,6 +94,7 @@ function signIn() {
 						}).done(function(deviceInfo) {
 							console.log(deviceInfo);
 							$.each(deviceInfo.functions, function() {
+								console.log("Function: "+this);
 								var deviceFunction = this;
 								var functionLI = $("<li></li>");
 								functionLI.appendTo('#deviceFunctionList');
@@ -156,6 +157,18 @@ function signIn() {
 									var data = JSON.parse(e.data);
 									console.log("Input 1 action");
 									$('#eventLog').append('Input 1: ' + data.data + '<br>');
+								}, false);
+								source.addEventListener('RFID', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('RFID Fob ID: '+data.data +'<br>');
+								}, false);
+								source.addEventListener('Motion', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('Motion: '+data.data +'<br>');
+								}, false);
+								source.addEventListener('KeyFobAction', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('KeyFob Event: '+data.data+'<br>');
 								}, false);
 							};
 							source.onerror = function() {
