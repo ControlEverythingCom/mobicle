@@ -1,0 +1,84 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', 'weinre' ]
+2 info using npm@2.11.3
+3 info using node@v0.12.7
+4 verbose install initial load of /Users/travis/webserver/mobicle/package.json
+5 verbose readDependencies loading dependencies from /Users/travis/webserver/mobicle/package.json
+6 silly cache add args [ 'weinre', null ]
+7 verbose cache add spec weinre
+8 silly cache add parsed spec { raw: 'weinre',
+8 silly cache add   scope: null,
+8 silly cache add   name: 'weinre',
+8 silly cache add   rawSpec: '',
+8 silly cache add   spec: '*',
+8 silly cache add   type: 'range' }
+9 silly addNamed weinre@*
+10 verbose addNamed "*" is a valid semver range for weinre
+11 silly addNameRange { name: 'weinre', range: '*', hasData: false }
+12 silly mapToRegistry name weinre
+13 silly mapToRegistry using default registry
+14 silly mapToRegistry registry https://registry.npmjs.org/
+15 silly mapToRegistry uri https://registry.npmjs.org/weinre
+16 verbose addNameRange registry:https://registry.npmjs.org/weinre not in flight; fetching
+17 verbose request uri https://registry.npmjs.org/weinre
+18 verbose request no auth needed
+19 info attempt registry request try #1 at 2:55:34 PM
+20 verbose request id 163e9162c395c154
+21 verbose etag "9QCJHHFES350KGT627Y19ZKB8"
+22 http request GET https://registry.npmjs.org/weinre
+23 http 304 https://registry.npmjs.org/weinre
+24 silly get cb [ 304,
+24 silly get   { date: 'Tue, 06 Oct 2015 19:55:35 GMT',
+24 silly get     via: '1.1 varnish',
+24 silly get     'cache-control': 'max-age=60',
+24 silly get     etag: '"9QCJHHFES350KGT627Y19ZKB8"',
+24 silly get     age: '29',
+24 silly get     connection: 'keep-alive',
+24 silly get     'x-served-by': 'cache-ord1729-ORD',
+24 silly get     'x-cache': 'HIT',
+24 silly get     'x-cache-hits': '1',
+24 silly get     'x-timer': 'S1444161335.447146,VS0,VE0',
+24 silly get     vary: 'Accept' } ]
+25 verbose etag https://registry.npmjs.org/weinre from cache
+26 verbose get saving weinre to /Users/travis/.npm/registry.npmjs.org/weinre/.cache.json
+27 silly addNameRange number 2 { name: 'weinre', range: '*', hasData: true }
+28 silly addNameRange versions [ 'weinre',
+28 silly addNameRange   [ '2.0.0-pre-H0WTHDO5-incubating',
+28 silly addNameRange     '2.0.0-pre-H1GCS73N-incubating',
+28 silly addNameRange     '2.0.0-pre-H3FWTQKQ-incubating',
+28 silly addNameRange     '2.0.0-pre-H41DGW8S-incubating',
+28 silly addNameRange     '2.0.0-pre-H8EOSCLN-incubating',
+28 silly addNameRange     '2.0.0-pre-H9PU2WST-incubating',
+28 silly addNameRange     '2.0.0-pre-HA5N9T49',
+28 silly addNameRange     '2.0.0-pre-HG9PLCRF',
+28 silly addNameRange     '2.0.0-pre-HH0SN197',
+28 silly addNameRange     '2.0.0-pre-HYFXM3QM',
+28 silly addNameRange     '2.0.0-pre-HZ79PDUK',
+28 silly addNameRange     '2.0.0-pre-HZO3BMNG',
+28 silly addNameRange     '2.0.0-pre-I0Z7U9OV' ] ]
+29 verbose stack Error: No compatible version found: weinre@'*'
+29 verbose stack Valid install targets:
+29 verbose stack ["2.0.0-pre-H0WTHDO5-incubating","2.0.0-pre-H1GCS73N-incubating","2.0.0-pre-H3FWTQKQ-incubating","2.0.0-pre-H41DGW8S-incubating","2.0.0-pre-H8EOSCLN-incubating","2.0.0-pre-H9PU2WST-incubating","2.0.0-pre-HA5N9T49","2.0.0-pre-HG9PLCRF","2.0.0-pre-HH0SN197","2.0.0-pre-HYFXM3QM","2.0.0-pre-HZ79PDUK","2.0.0-pre-HZO3BMNG","2.0.0-pre-I0Z7U9OV"]
+29 verbose stack
+29 verbose stack     at installTargetsError (/usr/local/lib/node_modules/npm/lib/cache/add-named.js:274:12)
+29 verbose stack     at next (/usr/local/lib/node_modules/npm/lib/cache/add-named.js:253:17)
+29 verbose stack     at setData (/usr/local/lib/node_modules/npm/lib/cache/add-named.js:230:5)
+29 verbose stack     at RES (/usr/local/lib/node_modules/npm/node_modules/inflight/inflight.js:23:14)
+29 verbose stack     at f (/usr/local/lib/node_modules/npm/node_modules/once/once.js:17:25)
+29 verbose stack     at fixName (/usr/local/lib/node_modules/npm/lib/cache/add-named.js:29:5)
+29 verbose stack     at saved (/usr/local/lib/node_modules/npm/lib/cache/caching-client.js:173:7)
+29 verbose stack     at FSReqWrap.oncomplete (fs.js:95:15)
+30 verbose cwd /Users/travis/webserver/mobicle
+31 error Darwin 14.5.0
+32 error argv "node" "/usr/local/bin/npm" "install" "weinre"
+33 error node v0.12.7
+34 error npm  v2.11.3
+35 error code ETARGET
+36 error notarget No compatible version found: weinre@'*'
+36 error notarget Valid install targets:
+36 error notarget ["2.0.0-pre-H0WTHDO5-incubating","2.0.0-pre-H1GCS73N-incubating","2.0.0-pre-H3FWTQKQ-incubating","2.0.0-pre-H41DGW8S-incubating","2.0.0-pre-H8EOSCLN-incubating","2.0.0-pre-H9PU2WST-incubating","2.0.0-pre-HA5N9T49","2.0.0-pre-HG9PLCRF","2.0.0-pre-HH0SN197","2.0.0-pre-HYFXM3QM","2.0.0-pre-HZ79PDUK","2.0.0-pre-HZO3BMNG","2.0.0-pre-I0Z7U9OV"]
+36 error notarget
+36 error notarget This is most likely not a problem with npm itself.
+36 error notarget In most cases you or one of your dependencies are requesting
+36 error notarget a package version that doesn't exist.
+37 verbose exit [ 1, true ]

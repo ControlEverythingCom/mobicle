@@ -17,25 +17,7 @@
  * under the License.
  */
 
-function popup() {
-	var $ = jQuery;
-	$.post("https://api.particle.io/oauth/token", {
-		client_id : 'particle',
-		client_secret : 'particle',
-		grant_type : 'password',
-		username : 'travis@controlanything.com',
-		password : 'Spunky11'
-	}, function() {
-		console.log("Post request sent");
-	}).success(function(data) {
-		console.log(data);
-		var output = '';
-		output += '<li>' + "Success" + '</li>';
-		$('#deviceList').append(output).listview('refresh');
-	}).error(function(data) {
-		console.log("POST request error");
-	});
-}
+var button = $('<button></button>');
 
 function reloadDeviceVariables(url) {
 	var args = url.split("/");
@@ -114,22 +96,43 @@ function signIn() {
 						}).done(function(deviceInfo) {
 							console.log(deviceInfo);
 							$.each(deviceInfo.functions, function() {
+								console.log("Function: "+this);
 								var deviceFunction = this;
 								var functionLI = $("<li></li>");
-								functionLI.text(deviceFunction).appendTo('#deviceFunctionList').click(function() {
-									var userInput = prompt("Enter function Argument");
-									if (userInput) {
+								functionLI.appendTo('#deviceFunctionList');
+								if (deviceFunction == "PWMControl") {
+									var input = $('<input></input>');
+									input.attr("type","range").attr("min","1100").attr("max","4095").change(function(){
+										console.log("change function:"+$(this).val());
 										var functionURL = "https://api.particle.io/v1/devices/" + device.id + "/" + deviceFunction;
 										$.post(functionURL, {
-											arg : userInput,
-											access_token : accessToken
-										}, function() {
+												arg : '1,'+$(this).val(),
+												access_token : accessToken
+											}, function() {
 
-										}).success(function(data) {
-											console.log(data);
-										});
-									}
-								});
+											}).success(function(data) {
+												console.log(data);
+											});
+									});
+									functionLI.append(input);
+								} else {
+									console.log('deviceFunction: '+deviceFunction);
+									functionLI.text(deviceFunction).appendTo('#deviceFunctionList').click(function() {
+										var userInput = prompt("Enter function Argument");
+										if (userInput) {
+											var functionURL = "https://api.particle.io/v1/devices/" + device.id + "/" + deviceFunction;
+											$.post(functionURL, {
+												arg : userInput,
+												access_token : accessToken
+											}, function() {
+
+											}).success(function(data) {
+												console.log(data);
+											});
+										}
+									});
+								}
+
 							});
 							var deviceVariables = deviceInfo.variables;
 							console.log(deviceVariables);
@@ -157,6 +160,18 @@ function signIn() {
 									console.log("Input 1 action");
 									$('#eventLog').append('Input 1: ' + data.data + '<br>');
 								}, false);
+								source.addEventListener('RFID', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('RFID Fob ID: '+data.data +'<br>');
+								}, false);
+								source.addEventListener('Motion', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('Motion: '+data.data +'<br>');
+								}, false);
+								source.addEventListener('KeyFobAction', function(e){
+									var data = JSON.parse(e.data);
+									$('#eventLog').append('KeyFob Event: '+data.data+'<br>');
+								}, false);
 							};
 							source.onerror = function() {
 								console.log("error on Server Event Streqm");
@@ -169,8 +184,12 @@ function signIn() {
 				} else {
 					//Device not connected so we really dont need to do anything but display it to the user.
 				}
-				$('#signInView').css({display : "none"});
-				$('#listOfDevices').css({display : "block"});
+				$('#signInView').css({
+					display : "none"
+				});
+				$('#listOfDevices').css({
+					display : "block"
+				});
 
 			});
 
@@ -192,9 +211,36 @@ function signIn() {
 
 (function($) {
 	$(document).ready(function() {
-
+		var accessToken = Cookies.get("access_token");
+		if ( typeof accessToken == 'undefined') {
+			var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
+			form.on("submit", signInSubmit);
+			$('<input type="hidden" name="client_id" value="particle">').appendTo(form);
+			$('<input type="hidden" name="client_secret" value="particle">').appendTo(form);
+			$('<input type="hidden" name="grant_type" value="password">').appendTo(form);
+			$('<label for="username">Email:</label>').appendTo(form);
+			$('<input type="email" name="username" id="username"></input>').appendTo(form);
+			$('<label for="password">Password:</label>').appendTo(form);
+			$('<input type="password" name="password" id="password"></input>').appendTo(form);
+			$('<input type="submit" value="Sign In"></input>').appendTo(form);
+			form.appendTo('body');
+		}else{
+			window.location.href = '/deviceList.html';
+		}
 	});
 })(jQuery);
+
+function signInSubmit(e){
+	console.log('signInSubmit');
+	e.preventDefault();
+	$.post($(this).attr('action'), $(this).serialize(), function(result){
+		console.log(result);
+		if(typeof result.access_token != 'undefined'){
+			Cookies.set("access_token", result.access_token);
+			window.location.href = '/deviceList.html';
+		}
+	});
+}
 
 var app = {
 	// Application Constructor
