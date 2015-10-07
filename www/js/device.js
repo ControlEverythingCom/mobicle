@@ -1,17 +1,19 @@
 (function($) {
 	$(document).ready(function() {
 		// var accessToken = Cookies.get("access_token");
+		console.log("device document ready");
 		var accessToken = getUrlParameter('access_token');
 		var deviceID = getUrlParameter("deviceid");
 		var deviceInfoURL = "https://api.particle.io/v1/devices/" + deviceID + "?access_token=" + accessToken;
+		//Create header with device name
+		var header = $('<h1></h1>').appendTo($('body'));
+		//Create list for holding device attributes(functions, variables, events)
+		var deviceAttrList = $('<ul data-role="listview" id="deviceAttrList"></ul>').appendTo('body');
+		$('<li data-role="list-divider" id="deviceAttrList">Functions</li>').appendTo(deviceAttrList);
 
 		$.get(deviceInfoURL, function() {
 		}).done(function(deviceInfo) {
-			//Create header with device name
-			$('<h1></h1>').text(deviceInfo.name).appendTo($('div.ui-page'));
-			//Create list for holding device attributes(functions, variables, events)
-			var deviceAttrList = $('<ul data-role="listview" id="deviceAttrList"></ul>').appendTo('div.ui-page');
-			$('<li data-role="list-divider">Functions</li>').appendTo(deviceAttrList);
+			header.text(deviceInfo.name);
 			//Register functions in list
 			$.each(deviceInfo.functions, function() {
 				var deviceFunction = this;
@@ -29,8 +31,8 @@
 						});
 					}
 				});
-
 			});
+			$('#deviceAttrList').listview().listview('refresh');
 			//add view for device variables in list
 			$('<li data-role="list-divider">Variables</li>').appendTo(deviceAttrList);
 			var deviceVariables = deviceInfo.variables;
@@ -44,17 +46,18 @@
 				var variableRequestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + key + "?access_token=" + accessToken;
 				console.log("here 4");
 				$.get(variableRequestURL, function(deviceVar) {
-					
-				}).done(function(deviceVar){
+
+				}).done(function(deviceVar) {
 					console.log("here 5");
 					var varText = deviceVar.name + ": " + deviceVar.result;
 					$("li#" + deviceID + deviceVar.name).text(varText);
 					// variableLI.text(varText);
 					console.log("deviceID+key: " + deviceID + key);
-				}).fail(function(){
+				}).fail(function() {
 					console.log("get for variable failed");
 				});
 			}
+			$('#deviceAttrList').listview().listview('refresh');
 			window.setInterval(function() {
 				reloadDeviceVariables(variableRequestURL);
 			}, 2000);
@@ -62,6 +65,7 @@
 			//Add view for device events
 			//Register for Server Sent Events
 			$('<li data-role="list-divider">Events</li>').appendTo(deviceAttrList);
+			$('#deviceAttrList').listview().listview('refresh');
 			var eventSubscribeURL = "https://api.particle.io/v1/devices/" + deviceID + "/events?access_token=" + accessToken;
 			var source = new EventSource(eventSubscribeURL);
 			source.onopen = function() {
@@ -70,29 +74,34 @@
 					var data = JSON.parse(e.data);
 					console.log("Input 1 action");
 					$('<li></li>').text('Input 1: ' + data.data).appendTo(deviceAttrList);
+					$('#deviceAttrList').listview().listview('refresh');
 				}, false);
 				source.addEventListener('RFID', function(e) {
 					var data = JSON.parse(e.data);
 					$('<li></li>').text('RFID Fob ID: ' + data.data).appendTo(deviceAttrList);
+					$('#deviceAttrList').listview().listview('refresh');
 				}, false);
 				source.addEventListener('Motion', function(e) {
 					var data = JSON.parse(e.data);
 					$('<li></li>').text('Motion: ' + data.data).appendTo(deviceAttrList);
+					$('#deviceAttrList').listview().listview('refresh');
 				}, false);
 				source.addEventListener('KeyFobAction', function(e) {
 					var data = JSON.parse(e.data);
 					$('<li></li>').text('KeyFob Event: ' + data.data).appendTo(deviceAttrList);
+					$('#deviceAttrList').listview().listview('refresh');
 				}, false);
 				source.addEventListener('KeepAlive', function(e) {
 					var data = JSON.parse(e.data);
 					$('<li></li>').text('KeepAlive Event: ' + data.data).appendTo(deviceAttrList);
+					$('#deviceAttrList').listview().listview('refresh');
 				}, false);
 			};
 			source.onerror = function() {
 				console.log("error on Server Event Stream");
 			};
-
 		});
+		$('#deviceAttrList').listview().listview('refresh');
 
 	});
 })(jQuery);

@@ -43,13 +43,13 @@ body {
    display: inline;
 }
 
-#deviceListView li{
+/*#deviceListView li{
 	color:red;
-}
+}*/
 
-#deviceListView li.connected{
+/*#deviceListView li.connected{
 	color:green;
-}
+}*/
 
 /* Landscape layout (with min-width) */
 @media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
