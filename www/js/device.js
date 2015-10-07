@@ -1,14 +1,20 @@
 (function($) {
-	$(document).ready(function() {
+	$('body').on('pagecontainerchange',function(a, b) {
+	    console.log(b);
+	    
+        var page = b.toPage;
+	    if(b.absUrl.indexOf('device.html')<0) return;
+	    page.children().remove();
 		// var accessToken = Cookies.get("access_token");
 		console.log("device document ready");
 		var accessToken = getUrlParameter('access_token');
 		var deviceID = getUrlParameter("deviceid");
+		console.log(deviceID);
 		var deviceInfoURL = "https://api.particle.io/v1/devices/" + deviceID + "?access_token=" + accessToken;
 		//Create header with device name
-		var header = $('<h1></h1>').appendTo($('body'));
+		var header = $('<h1></h1>').appendTo(page);
 		//Create list for holding device attributes(functions, variables, events)
-		var deviceAttrList = $('<ul data-role="listview" id="deviceAttrList"></ul>').appendTo('body');
+		var deviceAttrList = $('<ul data-role="listview" data-inset="true" id="deviceAttrList"></ul>').appendTo(page);
 		$('<li data-role="list-divider" id="deviceAttrList">Functions</li>').appendTo(deviceAttrList);
 
 		$.get(deviceInfoURL, function() {
