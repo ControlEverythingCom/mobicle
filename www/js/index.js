@@ -19,16 +19,23 @@
 
 (function($) {
 	$(document).ready(function() {
-		console.log("document ready");
-		var accessToken;
-		var app = document.URL.indexOf('http://') === -1 && document.URL.indexOf('https://') === -1;
-		if (app) {
-			// PhoneGap application
-			accessToken = window.localStorage.getItem('access_token');
-		} else {
-			// Web page
-			accessToken = Cookies.get('access_token');
-		}
+		console.log("index document ready");
+		
+		// if(typeof window.localStorage == 'undefined'){
+			// console.log('running on browser');
+			// window.localStorage={
+				// getItem: function(name){
+					// Cookies.getItem(name);
+				// },
+				// setItem: function(name, variable){
+					// Cookies.setItem(name, variable);
+				// }
+			// };
+		// }else{
+			// console.log('running on cordova app');
+		// }		
+		
+		var accessToken = window.localStorage.getItem('access_token');
 
 		if ( typeof accessToken == 'undefined' || accessToken == null) {
 			console.log("accessToken not found");
@@ -44,7 +51,7 @@
 			$('<input type="submit" value="Sign In"></input>').appendTo(form);
 			form.appendTo('body');
 		} else {
-			window.location.href = 'deviceList.html?access_token=' + accessToken + '&';
+			window.location.href = '/deviceList.html';
 		}
 	});
 })(jQuery);
@@ -55,18 +62,8 @@ function signInSubmit(e) {
 	$.post($(this).attr('action'), $(this).serialize(), function(result) {
 		console.log(result);
 		if ( typeof result.access_token != 'undefined') {
-			//Cookies.set("access_token", result.access_token);
-			// window.localStorage.setItem('access_token', result.access_token);
-			var url = 'deviceList.html?access_token=' + result.access_token + '&';
-			var app = document.URL.indexOf('http://') === -1 && document.URL.indexOf('https://') === -1;
-			if (app) {
-				// PhoneGap application
-				window.localStorage.setItem('access_token', result.access_token);
-			} else {
-				// Web page
-				Cookies.set('access_token', result.access_token);
-			}
-			window.location.href = url;
+			window.localStorage.setItem('access_token', result.access_token);
+			window.location.href = 'deviceList.html';
 		}
 	});
 }
