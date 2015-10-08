@@ -1,16 +1,16 @@
 (function($) {
 	$(document).ready(function() {
-		console.log("document ready")
+		console.log("deviceList document ready");
 		var accessToken = getUrlParameter('access_token');
 		var requestURL = 'https://api.particle.io/v1/devices?access_token=' + accessToken;
-		var listView = $('<ul data-role="listview" id="deviceListView"></ul>').appendTo('body');
+		var listView = $('<ul data-role="listview" id="deviceListView" data-inset="true"></ul>').appendTo('body');
+		$('<li data-role="list-divider">Devices</li>').appendTo(listView);
 		$.get(requestURL, function(e) {
 		}).done(function(devices) {
 			$.each(devices, function() {
 				var device = this;
 				var name = device.name == null ? "Unnamed Device" : device.name;
-				var li = $("<li></li>");
-				li.appendTo("#deviceListView").attr("id", device.id);
+				var li = $("<li></li>").appendTo("#deviceListView").attr("id", device.id);
 				if (device.connected == true) {
 					var hrefLink = '<a href= device.html?deviceid=' + device.id + '&access_token=' + accessToken + '>' + name + '</a>';
 					li.append(hrefLink);
@@ -31,28 +31,37 @@
 function reloadDevices(url, accessToken) {
 	$.get(url, function() {
 	}).done(function(devices) {
-		$('#statusLabel').text("Device List Loaded");
 		//For Each loop to load each device's information
 		$.each(devices, function() {
 			var device = this;
+
+			//No device in list so create it
+			if ( typeof $('#' + device.id) == 'undefined') {
+				var name = device.name == null ? "Unnamed Device" : device.name;
+				var li = $("<li></li>").appendTo("#deviceListView").attr("id", device.id);
+			}
+
 			if (device.connected == true) {
-				if($('#' + device.id + ' a').length){
-					$('#' + device.id + ' a').attr('href', 'device.html?deviceid=' + device.id + '&access_token=' + accessToken);
-				}
-				else{
+
+				if ($('#' + device.id + ' a').length>0) {
+					
+					//Do nothing.
+				} else {
 					var listItem = $('#' + device.id);
-					var hrefLink = $('<a href= device.html?deviceid=' + device.id + '&access_token=' + accessToken + '>'+'</a>');
+					var hrefLink = '<a href= device.html?deviceid=' + device.id + '&access_token=' + accessToken + '>' + '</a>';
 					listItem.text(device.name);
 					listItem.append(hrefLink);
 				}
-			} else {
+
+			}
+			//Device Not connected
+			else {
 				//Device not connected so we really dont need to do anything but display it to the user.
-				$('#' + device.id).empty();
+				$('#' + device.id + ' a').removeAttr("href");
 				$('#' + device.id).text(device.name);
 			}
-			$('#deviceListView').listview().listview('refresh');
-
 		});
+		$('#deviceListView').listview().listview('refresh');
 	}).fail(function() {
 		$('#statusLabel').text("Error loading Device List");
 	});

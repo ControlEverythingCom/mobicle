@@ -1,18 +1,25 @@
 (function($) {
-	$(document).ready(function() {
+	$('body').on('pagecontainerchange',function(a, b) {
+	    console.log(b);
+	    
+        var page = b.toPage;
+	    if(b.absUrl.indexOf('device.html')<0) return;
+	    page.children().remove();
 		// var accessToken = Cookies.get("access_token");
-		console.log("document ready");
+		console.log("device document ready");
 		var accessToken = getUrlParameter('access_token');
 		var deviceID = getUrlParameter("deviceid");
+		console.log(deviceID);
 		var deviceInfoURL = "https://api.particle.io/v1/devices/" + deviceID + "?access_token=" + accessToken;
+		//Create header with device name
+		var header = $('<h1></h1>').appendTo(page);
+		//Create list for holding device attributes(functions, variables, events)
+		var deviceAttrList = $('<ul data-role="listview" data-inset="true" id="deviceAttrList"></ul>').appendTo(page);
+		$('<li data-role="list-divider" id="deviceAttrList">Functions</li>').appendTo(deviceAttrList);
 
 		$.get(deviceInfoURL, function() {
 		}).done(function(deviceInfo) {
-			//Create header with device name
-			$('<h1></h1>').text(deviceInfo.name).appendTo($('div.ui-page'));
-			//Create list for holding device attributes(functions, variables, events)
-			var deviceAttrList = $('<ul data-role="listview" id="deviceAttrList"></ul>').appendTo('div.ui-page');
-			$('<li data-role="list-divider" id="deviceAttrList">Functions</li>').appendTo(deviceAttrList);
+			header.text(deviceInfo.name);
 			//Register functions in list
 			$.each(deviceInfo.functions, function() {
 				var deviceFunction = this;
@@ -30,8 +37,8 @@
 						});
 					}
 				});
-
 			});
+			$('#deviceAttrList').listview().listview('refresh');
 			//add view for device variables in list
 			$('<li data-role="list-divider">Variables</li>').appendTo(deviceAttrList);
 			var deviceVariables = deviceInfo.variables;
@@ -45,17 +52,18 @@
 				var variableRequestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + key + "?access_token=" + accessToken;
 				console.log("here 4");
 				$.get(variableRequestURL, function(deviceVar) {
-					
-				}).done(function(deviceVar){
+
+				}).done(function(deviceVar) {
 					console.log("here 5");
 					var varText = deviceVar.name + ": " + deviceVar.result;
 					$("li#" + deviceID + deviceVar.name).text(varText);
 					// variableLI.text(varText);
 					console.log("deviceID+key: " + deviceID + key);
-				}).fail(function(){
+				}).fail(function() {
 					console.log("get for variable failed");
 				});
 			}
+			$('#deviceAttrList').listview().listview('refresh');
 			window.setInterval(function() {
 				reloadDeviceVariables(variableRequestURL);
 			}, 2000);
@@ -63,6 +71,7 @@
 			//Add view for device events
 			//Register for Server Sent Events
 			$('<li data-role="list-divider">Events</li>').appendTo(deviceAttrList);
+			$('#deviceAttrList').listview().listview('refresh');
 			var eventSubscribeURL = "https://api.particle.io/v1/devices/" + deviceID + "/events?access_token=" + accessToken;
 			var source = new EventSource(eventSubscribeURL);
 			source.onopen = function() {
@@ -97,9 +106,8 @@
 			source.onerror = function() {
 				console.log("error on Server Event Stream");
 			};
-			$('#deviceAttrList').listview().listview('refresh');
-
 		});
+		$('#deviceAttrList').listview().listview('refresh');
 
 	});
 })(jQuery);

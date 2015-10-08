@@ -17,46 +17,19 @@
  * under the License.
  */
 
-var button = $('<button></button>');
-
-function reloadDeviceVariables(url) {
-	var args = url.split("/");
-	var deviceID = args[5];
-	console.log("Device ID: " + deviceID);
-	$.get(url, function(deviceVar) {
-		var varText = deviceVar.name + ": " + deviceVar.result;
-		$("li#" + deviceID + deviceVar.name).text(varText);
-		console.log(varText);
-	});
-}
-
-function reloadDevices(url) {
-	$.get(url, function() {
-	}).done(function(devices) {
-		$('#statusLabel').text("Device List Loaded");
-		//For Each loop to load each device's information
-		$.each(devices, function() {
-			var device = this;
-			if (device.connected == true) {
-				$('#' + device.id).addClass('connected');
-			} else {
-				//Device not connected so we really dont need to do anything but display it to the user.
-				$('#' + device.id).removeClass('connected');
-			}
-
-		});
-	}).fail(function() {
-		$('#statusLabel').text("Error loading Device List");
-	});
-	$.get(url, function(data) {
-
-	});
-}
-
 (function($) {
 	$(document).ready(function() {
 		console.log("document ready");
-		var accessToken = window.localStorage.getItem("access_token");
+		var accessToken;
+		var app = document.URL.indexOf('http://') === -1 && document.URL.indexOf('https://') === -1;
+		if (app) {
+			// PhoneGap application
+			accessToken = window.localStorage.getItem('access_token');
+		} else {
+			// Web page
+			accessToken = Cookies.get('access_token');
+		}
+
 		if ( typeof accessToken == 'undefined' || accessToken == null) {
 			console.log("accessToken not found");
 			var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
@@ -70,22 +43,29 @@ function reloadDevices(url) {
 			$('<input type="password" name="password" id="password"></input>').appendTo(form);
 			$('<input type="submit" value="Sign In"></input>').appendTo(form);
 			form.appendTo('body');
-		}else{
-			window.location.href = 'deviceList.html?access_token='+accessToken+'&';
+		} else {
+			window.location.href = 'deviceList.html?access_token=' + accessToken + '&';
 		}
 	});
 })(jQuery);
 
-function signInSubmit(e){
+function signInSubmit(e) {
 	console.log('signInSubmit');
 	e.preventDefault();
-	$.post($(this).attr('action'), $(this).serialize(), function(result){
+	$.post($(this).attr('action'), $(this).serialize(), function(result) {
 		console.log(result);
-		if(typeof result.access_token != 'undefined'){
+		if ( typeof result.access_token != 'undefined') {
 			//Cookies.set("access_token", result.access_token);
 			// window.localStorage.setItem('access_token', result.access_token);
-			var url = 'deviceList.html?access_token='+result.access_token+'&';
-			console.log(url);
+			var url = 'deviceList.html?access_token=' + result.access_token + '&';
+			var app = document.URL.indexOf('http://') === -1 && document.URL.indexOf('https://') === -1;
+			if (app) {
+				// PhoneGap application
+				window.localStorage.setItem('access_token', result.access_token);
+			} else {
+				// Web page
+				Cookies.set('access_token', result.access_token);
+			}
 			window.location.href = url;
 		}
 	});
@@ -124,10 +104,4 @@ var app = {
 
 		console.log('Received Event: ' + id);
 	}
-};
-
-(function($) {
-	$(document).on("mobileinit", function() {
-		console.log("jQuery Mobile init");
-	});
-})(jQuery);
+}; 
