@@ -4,6 +4,8 @@
         var ParticleAPI=null;
         var accessToken = window.localStorage.getItem('access_token');
         
+        
+        
         $('body').on('load_page_deviceList', function(a, b){
             ParticleAPI.updateDevices();
         });
@@ -11,6 +13,8 @@
         $('body').on('load_page_device', function(a, b){
             ParticleAPI.updateDevice(getUrlParameter('deviceid'));
         });
+        
+        
         
         $('body').pagecontainer({change:function(a,b){
             if(typeof b.absUrl == 'undefined'){
@@ -30,16 +34,19 @@
         if ( typeof accessToken == 'undefined' || accessToken == null) {
             console.log("accessToken not found");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
-            form.on("submit", function(){
+            form.on("submit", function(e){
                 e.preventDefault();
                 $.post($(this).attr('action'), $(this).serialize(), function(result) {
                     console.log(result);
                     if ( typeof result.access_token != 'undefined') {
                         window.localStorage.setItem('access_token', result.access_token);
                         //window.location.href = 'deviceList.html';
+                        
+                        ParticleAPI=new Particle(result.access_token);
                         $('body').pagecontainer('change', 'deviceList.html');
                     }
                 });
+                return false;
             });
             $('<input type="hidden" name="client_id" value="particle">').appendTo(form);
             $('<input type="hidden" name="client_secret" value="particle">').appendTo(form);
@@ -50,7 +57,7 @@
             $('<input type="password" name="password" id="password"></input>').appendTo(form);
             $('<input type="submit" value="Sign In"></input>').appendTo(form);
             form.appendTo($('body').pagecontainer('getActivePage'));
-            //form.trigger('create');
+            form.trigger('create');
         } else {
             ParticleAPI=new Particle(accessToken);
             if(window.location.pathname.indexOf('html')<0){
