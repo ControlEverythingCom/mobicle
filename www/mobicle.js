@@ -11,13 +11,11 @@
         
         $('body').on('load_page_device', function(a, b){
             ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-        });
-        
-        $('body').on('load_page_addButton', function(a, b){
             var select=$('#buttonFunctionList');
             $('#deviceFunctionList li:not([data-role=list-divider])').each(function(){
                $('<option></option>').text($(this).text()).val($(this).text()).appendTo(select);
             });
+            //console.log($('#addButtonForm'));
             $('#addButtonForm').submit(function(){
                 var vals=$(this).getValues();
                 var li=$('<li></li>');
@@ -28,7 +26,6 @@
                 button.before($('#addButtonWrapper'));
                return false; 
             });
-            
         });
         $('body').pagecontainer({change:function(a,b){
             if(typeof b.absUrl == 'undefined'){
