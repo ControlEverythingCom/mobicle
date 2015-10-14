@@ -29,7 +29,20 @@
         </ul>
         <ul data-role="listview" id="deviceButtonList" data-inset="true">
             <li data-role="list-divider">Buttons</li>
-            <li id="addButtonWrapper"><a href="addButton.html" data-rel="dialog">Add Button</a></li>
+            <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li>
         </ul>
+        <div data-role="popup" id="addButtonPopup">
+            <div data-role="header"><h1 role="heading">Add Button</h1></div>
+            <form id="addButtonForm">
+                <ul data-role="listview" data-inset="true">
+                    <li><label>Function</label><select id="buttonFunctionList" name="buttonFunctionList">
+                        <option>Select a Function</option>
+                    </select></li>
+                    <li><label>Name of Button</label><input name="buttonName" type="text" /></li>
+                    <li><label>Arguments</label><input name="buttonArguments" type="text" /></li>
+                    <li><input type="submit" value="submit" /></li>
+                </ul>
+            </form>
+        </div>
     </body>
 </html>
