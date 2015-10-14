@@ -1,7 +1,6 @@
 (function($) {
     
     $(document).ready(function(){
-        var currentDevice=null;
         var ParticleAPI=null;
         var accessToken = window.localStorage.getItem('access_token');
         
@@ -10,21 +9,26 @@
         });
         
         $('body').on('load_page_device', function(a, b){
-            ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-            var select=$('#buttonFunctionList');
-            $('#deviceFunctionList li:not([data-role=list-divider])').each(function(){
-               $('<option></option>').text($(this).text()).val($(this).text()).appendTo(select);
-            });
-            //console.log($('#addButtonForm'));
-            $('#addButtonForm').submit(function(){
-                var vals=$(this).getValues();
-                var li=$('<li></li>');
-                var button=$('<a></a>').text(vals.buttonName).click(function(){
-                    currentDevice.callFunction(vals.buttonFunctionList, vals.buttonArguments);
-                    return false;
+            var device=ParticleAPI.updateDevice(getUrlParameter('deviceid'));
+            device.loaded(function(device){
+                var select=$('#buttonFunctionList');
+                $('#deviceFunctionList li:not([data-role=list-divider])').each(function(){
+                   var option=$('<option></option>').text($(this).text()).val($(this).text());
+                   select.append(option);
                 });
-                button.before($('#addButtonWrapper'));
-               return false; 
+                select.selectmenu();
+                select.selectmenu('refresh', true);
+                console.log(select);
+                $('#addButtonForm').submit(function(){
+                    var vals=$(this).getValues();
+                    device.addButton(vals);
+                    $('#addButtonPopup').popup('close');
+                   return false; 
+                });
+            });
+            $('#addButtonPopup').on('popupafterclose', function(){
+                $('#buttonFunctionList').val('_none');
+                console.log('set stuff');
             });
         });
         $('body').pagecontainer({change:function(a,b){
@@ -116,6 +120,7 @@
     Particle.prototype.updateDevice=function(deviceID){
         var device=new Device(this, deviceID);
         device.update();
+        return device;
     };
     
     function Device(api, did){
@@ -123,17 +128,43 @@
         this.id=did;
         this.baseUrl=this.api.baseUrl + 'devices/'+this.id;
         this.urlTail="?access_token="+this.api.accessToken;
+        this._loaded=[];
+        this.isLoaded=false;
+        this.buttons=[];
         currentDevice=this;
     }
+    
+    Device.prototype.loaded=function(f){
+        if(typeof f === 'undefined'){
+            this.isLoaded=true;
+            for(var i=0;i<this._loaded.length;i++){
+                var func=this._loaded[i];
+                func(this);
+            }
+        }else{
+            if(this.isLoaded) f(this);
+            else this._loaded.push(f);
+        }
+    };
     Device.prototype.update=function(){
         var device=this;
-        console.log(this.baseUrl+this.urlTail);
         $.get(this.baseUrl+this.urlTail).done(function(data){
             $('#deviceName').text(data.name);
             device.data=data;
             device.updateFunctions();
             device.updateVariables();
             device.updateEvents();
+            //window.localStorage.setItem('device_'+device.id+'_buttons','');
+            var buttons=window.localStorage.getItem('device_'+device.id+'_buttons');
+            console.log(buttons);
+            if(buttons){
+                device.buttons=$.parseJSON(buttons);
+                for(var i=0;i<device.buttons.length;i++){
+                    device.addButton(device.buttons[i], false);
+                }
+            }
+            device.loaded();
+            console.log('loaded called');
         });
     };
     Device.prototype.updateFunctions=function(){
@@ -154,11 +185,11 @@
             device.updateVariable(key);
         });
         $('#deviceVariablesList').listview().listview('refresh');
-        if($('#deviceVariablesList li:not[data-role=list-divider]').length==0){
+        /*if($('#deviceVariablesList li:not[data-role=list-divider]').length==0){
             window.setTimeout(function(){
                 device.updateVariables();
             }, 10000);
-        }
+        }*/
     };
     Device.prototype.updateVariable=function(key){
         var device=this;
@@ -180,6 +211,26 @@
         }).success(function(data) {
             console.log(data);
         });
+    };
+    Device.prototype.addButton=function(vals, add){
+        var device=this;
+        if(typeof add === 'undefined'){
+            this.buttons.push(vals);
+            var json=JSON.stringify(this.buttons);
+            console.log(json);
+            window.localStorage.setItem('device_'+this.id+'_buttons', json);
+        }
+        var li=$('<li></li>');
+        var button=$('<a></a>').text(vals.buttonName).click(function(){
+            device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+            return false;
+        }).appendTo(li);
+        var edit=$('<a></a>').text('edit').appendTo(li);
+        li.insertBefore($('#addButtonWrapper'));
+        edit.click(function(){
+           var button=li.index();
+        });
+        li.parent().listview().listview('refresh');
     };
     $.fn.getValues=function(){
         var paramObj = {};
