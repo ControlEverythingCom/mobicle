@@ -1,6 +1,7 @@
 (function($) {
     
     $(document).ready(function(){
+        var currentDevice=null;
         var ParticleAPI=null;
         var accessToken = window.localStorage.getItem('access_token');
         
@@ -12,6 +13,23 @@
             ParticleAPI.updateDevice(getUrlParameter('deviceid'));
         });
         
+        $('body').on('load_page_addButton', function(a, b){
+            var select=$('#buttonFunctionList');
+            $('#deviceFunctionList li:not([data-role=list-divider])').each(function(){
+               $('<option></option>').text($(this).text()).val($(this).text()).appendTo(select);
+            });
+            $('#addButtonForm').submit(function(){
+                var vals=$(this).getValues();
+                var li=$('<li></li>');
+                var button=$('<a></a>').text(vals.buttonName).click(function(){
+                    currentDevice.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+                    return false;
+                });
+                button.before($('#addButtonWrapper'));
+               return false; 
+            });
+            
+        });
         $('body').pagecontainer({change:function(a,b){
             if(typeof b.absUrl == 'undefined'){
                 var url=b.options.dataUrl;
@@ -99,52 +117,79 @@
         });
     };
     Particle.prototype.updateDevice=function(deviceID){
-        var that=this;
-        $.get(this.baseUrl + 'devices/'+deviceID+'?access_token=' + this.accessToken).done(function(deviceInfo){
-            $('#deviceName').text(deviceInfo.name);
-            $.each(deviceInfo.functions, function() {
-                var deviceFunction = this;
-                var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(deviceFunction).click(function() {
-                    var userInput = prompt("Enter function Argument");
-                    if (userInput) {
-                        var functionURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + deviceFunction;
-                        $.post(functionURL, {
-                            arg : userInput,
-                            access_token : that.accessToken
-                        }).success(function(data) {
-                            console.log(data);
-                        });
-                    }
-                });
-            });
-            $('#deviceFunctionList').listview().listview('refresh');
-            
-            var deviceVariables = deviceInfo.variables;
-            $.each(deviceInfo.variables, function(key, value){
-                var variableLI = $('<li></li>');
-                variableLI.appendTo($('#deviceVariablesList')).attr("id", deviceID + key);
-                var variableRequestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + key + "?access_token=" + that.accessToken;
-                $.get(variableRequestURL).done(function(deviceVar) {
-                    var varText = deviceVar.name + ": " + deviceVar.result;
-                    $("li#" + deviceID + deviceVar.name).text(varText);
-                }).fail(function() {
-                    console.log("get for variable failed");
-                });
-                /*window.setInterval(function() {
-                    that.reloadVariables(variableRequestURL);
-                }, 2000);*/
-            });
-            $('#deviceVariablesList').listview().listview('refresh');
-            
-        }).fail(function(){});
+        var device=new Device(this, deviceID);
+        device.update();
     };
-    Particle.prototype.reloadVariables=function(url){
-        var args = url.split("/");
-        var deviceID = args[5];
-        $.get(url, function(deviceVar) {
-            var varText = deviceVar.name + ": " + deviceVar.result;
-            $("li#" + deviceID + deviceVar.name).text(varText);
+    
+    function Device(api, did){
+        this.api=api;
+        this.id=did;
+        this.baseUrl=this.api.baseUrl + 'devices/'+this.id;
+        this.urlTail="?access_token="+this.api.accessToken;
+        currentDevice=this;
+    }
+    Device.prototype.update=function(){
+        var device=this;
+        console.log(this.baseUrl+this.urlTail);
+        $.get(this.baseUrl+this.urlTail).done(function(data){
+            $('#deviceName').text(data.name);
+            device.data=data;
+            device.updateFunctions();
+            device.updateVariables();
+            device.updateEvents();
         });
+    };
+    Device.prototype.updateFunctions=function(){
+        var device=this;
+        $('#deviceFunctionList li:not([data-role=list-divider])').remove();
+        $.each(this.data.functions, function(key, func) {
+            var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).click(function() {
+                var userInput = prompt("Enter function Argument");
+                if (userInput) device.callFunction(func, userInput);
+            });
+        });
+        $('#deviceFunctionList').listview().listview('refresh');
+    };
+    Device.prototype.updateVariables=function(){
+        var device=this;
+        $.each(this.data.variables, function(key, value){
+            $('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+            device.updateVariable(key);
+        });
+        $('#deviceVariablesList').listview().listview('refresh');
+        if($('#deviceVariablesList li:not[data-role=list-divider]').length==0){
+            window.setTimeout(function(){
+                device.updateVariables();
+            }, 10000);
+        }
+    };
+    Device.prototype.updateVariable=function(key){
+        var device=this;
+        $.get(device.baseUrl + "/" + key + device.urlTail).done(function(data){
+            $("li#" + device.id + data.name).text(data.name+": "+data.result);
+        });
+        window.setTimeout(function(){
+            device.updateVariable(key);
+        }, 10000);
+    };
+    Device.prototype.updateEvents=function(){
+        
+    };
+    Device.prototype.callFunction=function(f,v){
+        var device=this;
+        $.post(this.baseUrl + "/" + f, {
+            arg : v,
+            access_token : device.api.accessToken
+        }).success(function(data) {
+            console.log(data);
+        });
+    };
+    $.fn.getValues=function(){
+        var paramObj = {};
+        $.each($(this).serializeArray(), function(_, kv) {
+          paramObj[kv.name] = kv.value;
+        });
+        return paramObj;
     };
 })(jQuery);
 
