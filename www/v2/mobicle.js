@@ -1,15 +1,20 @@
 (function($) {
     
     $(document).ready(function(){
+    	console.log("document ready");
         var ParticleAPI=null;
         var accessToken = window.localStorage.getItem('access_token');
         
         $('body').on('load_page_deviceList', function(a, b){
             ParticleAPI.updateDevices();
+            $('#logoutbutton').click(ParticleAPI.logOut);
         });
         
         $('body').on('load_page_device', function(a, b){
             ParticleAPI.updateDevice(getUrlParameter('deviceid'));
+            $('#devicelistbutton').click(function(){
+            	$('body').pagecontainer('change', 'deviceList.html');
+            });
         });
         
         $('body').pagecontainer({change:function(a,b){
@@ -70,6 +75,13 @@
         this.baseUrl='https://api.particle.io/v1/';
         this.accessToken=accessToken;
     }
+    
+    Particle.prototype.logOut=function(){
+    	console.log("Logging out");
+    	window.localStorage.removeItem('access_token');
+    	$('body').pagecontainer('change', 'index.html');
+    };
+    
     Particle.prototype.updateDevices=function(list){
         var devices = null;
         $.get(this.baseUrl + 'devices?access_token=' + this.accessToken).done(function(devices){
