@@ -110,10 +110,12 @@
             $('#statusLabel').text("Error loading Device List");
         });
     };
+    
     Particle.prototype.updateDevice=function(deviceID){
         var that=this;
         $.get(this.baseUrl + 'devices/'+deviceID+'?access_token=' + this.accessToken).done(function(deviceInfo){
             $('#deviceName').text(deviceInfo.name);
+            //List Functions
             $.each(deviceInfo.functions, function() {
                 var deviceFunction = this;
                 var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(deviceFunction).click(function() {
@@ -131,6 +133,7 @@
             });
             $('#deviceFunctionList').listview().listview('refresh');
             
+            //List Variables
             var deviceVariables = deviceInfo.variables;
             $.each(deviceInfo.variables, function(key, value){
                 var variableLI = $('<li></li>');
@@ -149,6 +152,15 @@
             $('#deviceVariablesList').listview().listview('refresh');
             
         }).fail(function(){});
+        $('#eventListDivider,#addEventButton').click(function(){
+        	var userInput = prompt("Enter function Argument");
+            if (userInput) {
+            	if(userInput){
+            		that.addEventListener(userInput);
+            	}
+            }
+        });
+        $('#deviceEventsList').listview().listview('refresh');
     };
     Particle.prototype.reloadVariables=function(url){
         var args = url.split("/");
@@ -158,6 +170,11 @@
             $("li#" + deviceID + deviceVar.name).text(varText);
         });
     };
+    Particle.prototype.addEventListener=function(eventString){
+    	console.log("adding event listener for event: "+eventString+" on device: "+deviceID);
+    	var eventSubscribeURL = "https://api.particle.io/v1/devices/" + deviceID + "/events?access_token=" + this.accessToken;
+    };
+    
 })(jQuery);
 
 function getUrlParameter(sParam) {
