@@ -16,17 +16,21 @@
         <script type="text/javascript" src="../js/cordova.js"></script>
     </head>
     <body>
-        <h1 id="deviceName"></h1>
-        <ul data-role="listview" id="deviceFunctionList" data-inset="true">
+    	<button class="ui-btn ui-corner-all" id="devicelistbutton" style="display: inline; width: 150px; float:right; margin-right: 8px">
+			Device List
+		</button>
+        <h1 id="deviceName" style="margin-left: 8px"></h1>
+        
+        <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Functions</li>
         </ul>
-        <ul data-role="listview" id="deviceVariablesList" data-inset="true">
+        <ul data-role="listview" id="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Variables</li>
         </ul>
-        <ul data-role="listview" id="deviceEventsList" data-inset="true">
+        <ul data-role="listview" id="deviceEventsList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider" id="eventListDivider">Events<div id="addEventButton" class="ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative"></div></li>
         </ul>
-        <ul data-role="listview" id="deviceButtonList" data-inset="true">
+        <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Buttons</li>
             <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li>
         </ul>
