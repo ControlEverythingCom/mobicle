@@ -270,10 +270,16 @@
 			device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
 			return false;
 		}).appendTo(li);
-		var edit = $('<a></a>').text('edit').appendTo(li);
+		var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
 		li.insertBefore($('#addButtonWrapper'));
+		//Edit Button click handler
 		edit.click(function() {
-			var button = li.index();
+			var buttonIndex = li.index();
+			var b = device.buttons[buttonIndex - 1];
+			$.each(b, function(name, value){
+				$('#'+name).val(value);
+				$('#addButtonPopup').popup('open');
+			});
 		});
 		li.parent().listview().listview('refresh');
 	};
