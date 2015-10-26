@@ -37,7 +37,7 @@
 			$('#addButtonCancel').click(function(){
 				$('#addButtonPopup').popup('close');
 				return false;
-			})
+			});
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
@@ -262,6 +262,7 @@
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 	Device.prototype.addButton = function(vals, add) {
+		console.log(vals);
 		var device = this;
 		if ( typeof add === 'undefined') {
 			this.buttons.push(vals);
@@ -278,10 +279,11 @@
 		li.insertBefore($('#addButtonWrapper'));
 		//Edit Button click handler
 		edit.click(function() {
+			
 			var buttonIndex = li.index();
 			var b = device.buttons[buttonIndex - 1];
 			$.each(b, function(name, value){
-				$('#'+name).val(value);
+				$('[name='+name+']').val(value);
 				$('#addButtonPopup').popup('open');
 			});
 		});
