@@ -34,6 +34,10 @@
 				$('#buttonFunctionList').val('_none');
 				console.log('set stuff');
 			});
+			$('#addButtonCancel').click(function(){
+				$('#addButtonPopup').popup('close');
+				return false;
+			})
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
