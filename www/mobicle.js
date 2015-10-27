@@ -11,9 +11,9 @@
 
 		$('body').on('load_page_device', function(a, b) {
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-			$('#devicelistbutton').click(function(){
-            	$('body').pagecontainer('change', 'deviceList.html');
-            });
+			$('#devicelistbutton').click(function() {
+				$('body').pagecontainer('change', 'deviceList.html');
+			});
 			device.loaded(function(device) {
 				var select = $('#buttonFunctionList');
 				$('#deviceFunctionList li:not([data-role=list-divider])').each(function() {
@@ -23,21 +23,49 @@
 				select.selectmenu();
 				select.selectmenu('refresh', true);
 				console.log(select);
+
+				//Handle submit button clicks on forms.  Intercepts prior to form submit
+				$("form input[type=submit]").click(function() {
+					$("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
+					$(this).attr("clicked", "true");
+				});
+
+				//Handle form submit
 				$('#addButtonForm').submit(function() {
-					var vals = $(this).getValues();
-					device.addButton(vals);
-					$('#addButtonPopup').popup('close');
-					return false;
+
+					var val = $("input[type=submit][clicked=true]").val();
+					switch(val) {
+					case "submit":
+						console.log("form submit");
+						var vals = $(this).getValues();
+						device.addButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "delete":
+						console.log("form delete");
+						var vals = $(this).getValues();
+						device.deleteButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "cancel":
+						console.log("form cancel");
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					}
+
 				});
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
 				$('#buttonFunctionList').val('_none');
-				console.log('set stuff');
+				console.log('set default function to _none');
 			});
-			$('#addButtonCancel').click(function(){
-				$('#addButtonPopup').popup('close');
-				return false;
-			});
+			// $('#addButtonCancel').click(function(){
+			// $('#addButtonPopup').popup('close');
+			// return false;
+			// });
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
@@ -99,13 +127,13 @@
 		this.baseUrl = 'https://api.particle.io/v1/';
 		this.accessToken = accessToken;
 	}
-	
-	Particle.prototype.logOut=function(){
-    	console.log("Logging out");
-    	window.localStorage.removeItem('access_token');
-    	$('body').pagecontainer('change', 'index.html');
-    };
 
+
+	Particle.prototype.logOut = function() {
+		console.log("Logging out");
+		window.localStorage.removeItem('access_token');
+		$('body').pagecontainer('change', 'index.html');
+	};
 
 	Particle.prototype.updateDevices = function(list) {
 		var devices = null;
@@ -245,14 +273,14 @@
 	};
 	Device.prototype.addEventListener = function(eventString) {
 		var device = this;
-		var eventSubscribeURL = this.baseUrl + "/events"+device.urlTail;
+		var eventSubscribeURL = this.baseUrl + "/events" + device.urlTail;
 		var source = new EventSource(eventSubscribeURL);
-		console.log("adding event: "+eventString+" to Listener");
+		console.log("adding event: " + eventString + " to Listener");
 		source.onopen = function() {
 			source.addEventListener(eventString, function(e) {
-				console.log(eventString+" fired");
+				console.log(eventString + " fired");
 				var data = JSON.parse(e.data);
-				$('<li></li>').text(eventString +": " + data.data).appendTo($('#deviceEventsList'));
+				$('<li></li>').text(eventString + ": " + data.data).appendTo($('#deviceEventsList'));
 				$('#deviceEventsList').listview().listview('refresh');
 			}, false);
 			source.onerror = function() {
@@ -262,32 +290,84 @@
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 	Device.prototype.addButton = function(vals, add) {
-		console.log(vals);
 		var device = this;
-		if ( typeof add === 'undefined') {
-			this.buttons.push(vals);
-			var json = JSON.stringify(this.buttons);
-			console.log(json);
-			window.localStorage.setItem('device_' + this.id + '_buttons', json);
-		}
-		var li = $('<li></li>');
-		var button = $('<a></a>').text(vals.buttonName).click(function() {
-			device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
-			return false;
-		}).appendTo(li);
-		var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
-		li.insertBefore($('#addButtonWrapper'));
-		//Edit Button click handler
-		edit.click(function() {
-			
-			var buttonIndex = li.index();
-			var b = device.buttons[buttonIndex - 1];
-			$.each(b, function(name, value){
-				$('[name='+name+']').val(value);
-				$('#addButtonPopup').popup('open');
+		var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
+
+		//Check to see if parent list view has child with this id already.  If so we are editing
+		if ($('#deviceButtonList').find($('#' + id)).length) {
+			//We are editing.
+			console.log("editing button");
+			//Get instance of old LI so we can replace with the new one
+			var oldLI = $('#' + id);
+			var newLI = $('<li></li>').attr("id", id);
+			var button = $('<a></a>').text(vals.buttonName).click(function() {
+				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+				return false;
+			}).appendTo(newLI);
+			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(newLI);
+			//Edit Button click handler
+			edit.click(function() {
+				var buttonIndex = newLI.index();
+				var b = device.buttons[buttonIndex - 1];
+				$.each(b, function(name, value) {
+					$('[name=' + name + ']').val(value);
+					$('#addButtonPopup').popup('open');
+				});
 			});
-		});
-		li.parent().listview().listview('refresh');
+			var index = oldLI.index() - 1;
+			oldLI.replaceWith(newLI);
+
+			this.buttons.splice(index, 1, vals);
+			var json = JSON.stringify(this.buttons);
+			window.localStorage.setItem('device_' + this.id + '_buttons', json);
+			newLI.parent().listview().listview('refresh');
+		} else {
+			if ( typeof add === 'undefined') {
+				this.buttons.push(vals);
+				var json = JSON.stringify(this.buttons);
+				console.log(json);
+				window.localStorage.setItem('device_' + this.id + '_buttons', json);
+			}
+			var li = $('<li></li>').attr("id", id);
+			var button = $('<a></a>').text(vals.buttonName).click(function() {
+				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+				return false;
+			}).appendTo(li);
+			var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
+			li.insertBefore($('#addButtonWrapper'));
+			//Edit Button click handler
+			edit.click(function() {
+
+				var buttonIndex = li.index();
+				var b = device.buttons[buttonIndex - 1];
+				$.each(b, function(name, value) {
+					$('[name=' + name + ']').val(value);
+					$('#addButtonPopup').popup('open');
+				});
+			});
+			li.parent().listview().listview('refresh');
+		}
+
+	};
+	Device.prototype.deleteButton = function(vals) {
+		//Get instance of device object
+		var device = this;
+		console.log("Delete Button function");
+		//Get instance of LI parent before deleting
+		var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
+		console.log(liParent);
+		//Get index of LI so we can reference that index in the buttons array
+		var liIndex = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).index() - 1;
+		console.log(liIndex);
+		//Remove the LI from the view
+		$('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).remove();
+		//Remove button from array
+		device.buttons.splice(liIndex, 1);
+		//Save array
+		var json = JSON.stringify(this.buttons);
+		window.localStorage.setItem('device_' + this.id + '_buttons', json);
+		//refresh button list view
+		liParent.listview().listview('refresh');
 	};
 	$.fn.getValues = function() {
 		var paramObj = {};
