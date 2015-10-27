@@ -59,13 +59,10 @@
 				});
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
-				$('#buttonFunctionList').val('_none');
-				console.log('set default function to _none');
+				$('[name=buttonFunctionList]').val('_none');
+				$('[name=buttonName]').val('');
+				$('[name=buttonArguments]').val('');
 			});
-			// $('#addButtonCancel').click(function(){
-			// $('#addButtonPopup').popup('close');
-			// return false;
-			// });
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
@@ -334,7 +331,7 @@
 				return false;
 			}).appendTo(li);
 			var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
-			li.insertBefore($('#addButtonWrapper'));
+			li.appendTo('#deviceButtonList');
 			//Edit Button click handler
 			edit.click(function() {
 

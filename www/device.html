@@ -31,10 +31,10 @@
             <li data-role="list-divider" id="eventListDivider">Events<div id="addEventButton" class="ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative"></div></li>
         </ul>
         <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
-            <li data-role="list-divider">Buttons</li>
-            <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li>
+            <li data-role="list-divider">Buttons<a href="#addButtonPopup" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
+            <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
         </ul>
-        <div data-role="popup" id="addButtonPopup">
+        <div data-role="popup" id="addButtonPopup" data-position-to="window">
             <div data-role="header"><h1 role="heading">Add Button</h1></div>
             <form id="addButtonForm">
                 <ul data-role="listview" data-inset="true">
