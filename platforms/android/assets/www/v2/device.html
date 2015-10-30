@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<title>My Devices</title>
+		<meta charset="utf-8" />
+		<meta name="format-detection" content="telephone=no" />
+		<meta name="msapplication-tap-highlight" content="no" />
+		<!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+		<link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
+		<link rel="stylesheet" href="../js/jquery.mobile/CEv1.min.css">
+        <link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
+		<title>Mobicle</title>
+		<script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
+		<!--<script type="text/javascript" src="../js/js.cookie.js"></script>-->
+		<!-- <script type="text/javascript" src="js/elements.js"></script> -->
+		<script type="text/javascript" src="../js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
+		<script type="text/javascript" src="mobicle.js"></script>
+		<script type="text/javascript" src="../js/cordova.js"></script>
+	</head>
+	<body>
+		<div data-role="page">
+			<div style="text-align: right">
+				<h1 id="deviceName"></h1>
+				<button class="ui-btn ui-corner-all" id="devicelistbutton" style="display: inline; width: 150px">Device List</button>
+			</div>
+
+			
+			<ul data-role="listview" id="deviceFunctionList" data-inset="true">
+				<li data-role="list-divider">
+					Functions
+				</li>
+			</ul>
+			<ul data-role="listview" id="deviceVariablesList" data-inset="true">
+				<li data-role="list-divider">
+					Variables
+				</li>
+			</ul>
+			<ul data-role="listview" id="deviceEventsList" data-inset="true">
+				<li data-role="list-divider" id="eventListDivider">Events<div id="addEventButton" class="ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative"></div></li>
+			</ul>
+		</div>
+
+	</body>
+</html>

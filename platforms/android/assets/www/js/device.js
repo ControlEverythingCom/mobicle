@@ -1,13 +1,19 @@
 (function($) {
-	$('body').on('pagecontainerchange',function(a, b) {
-	    console.log(b);
-	    
-        var page = b.toPage;
-	    if(b.absUrl.indexOf('device.html')<0) return;
-	    page.children().remove();
-		// var accessToken = Cookies.get("access_token");
+	$('body').on('pagecontainerchange', function(a, b) {
+		console.log(b);
+
+		var page = b.toPage;
+		if ( typeof b.absUrl == 'undefined') {
+			if (b.options.dataUrl.indexOf('device.html') < 0)
+				return;
+		} else {
+			if (b.absUrl.indexOf('device.html') < 0)
+				return;
+		}
+
+		page.children().remove();
 		console.log("device document ready");
-		var accessToken = getUrlParameter('access_token');
+		var accessToken = window.localStorage.getItem('access_token');
 		var deviceID = getUrlParameter("deviceid");
 		console.log(deviceID);
 		var deviceInfoURL = "https://api.particle.io/v1/devices/" + deviceID + "?access_token=" + accessToken;
@@ -39,34 +45,29 @@
 				});
 			});
 			$('#deviceAttrList').listview().listview('refresh');
+
 			//add view for device variables in list
 			$('<li data-role="list-divider">Variables</li>').appendTo(deviceAttrList);
 			var deviceVariables = deviceInfo.variables;
 			for (var key in deviceVariables) {
-				console.log("here 1");
-				console.log("key: " + key);
 				var variableLI = $('<li></li>');
-				console.log("here 2");
 				variableLI.appendTo(deviceAttrList).attr("id", deviceID + key);
-				console.log("here 3");
 				var variableRequestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + key + "?access_token=" + accessToken;
-				console.log("here 4");
 				$.get(variableRequestURL, function(deviceVar) {
 
 				}).done(function(deviceVar) {
-					console.log("here 5");
 					var varText = deviceVar.name + ": " + deviceVar.result;
 					$("li#" + deviceID + deviceVar.name).text(varText);
-					// variableLI.text(varText);
-					console.log("deviceID+key: " + deviceID + key);
+					var variableReRequestURL = "https://api.particle.io/v1/devices/" + deviceID + "/" + deviceVar.name + "?access_token=" + accessToken;
+					window.setInterval(function() {
+						reloadDeviceVariables(variableReRequestURL);
+					}, 2000);
 				}).fail(function() {
 					console.log("get for variable failed");
 				});
+				$('#deviceAttrList').listview().listview('refresh');
+
 			}
-			$('#deviceAttrList').listview().listview('refresh');
-			window.setInterval(function() {
-				reloadDeviceVariables(variableRequestURL);
-			}, 2000);
 
 			//Add view for device events
 			//Register for Server Sent Events
@@ -133,6 +134,7 @@ function reloadDeviceVariables(url) {
 	$.get(url, function(deviceVar) {
 		var varText = deviceVar.name + ": " + deviceVar.result;
 		$("li#" + deviceID + deviceVar.name).text(varText);
-		console.log(varText);
+		console.log("reloaded var: " + varText);
 	});
+
 }

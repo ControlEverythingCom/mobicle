@@ -1,7 +1,8 @@
 (function($) {
 	$(document).ready(function() {
 		console.log("deviceList document ready");
-		var accessToken = getUrlParameter('access_token');
+		var accessToken = window.localStorage.getItem('access_token');
+
 		var requestURL = 'https://api.particle.io/v1/devices?access_token=' + accessToken;
 		var listView = $('<ul data-role="listview" id="deviceListView" data-inset="true"></ul>').appendTo('body');
 		$('<li data-role="list-divider">Devices</li>').appendTo(listView);
@@ -12,7 +13,7 @@
 				var name = device.name == null ? "Unnamed Device" : device.name;
 				var li = $("<li></li>").appendTo("#deviceListView").attr("id", device.id);
 				if (device.connected == true) {
-					var hrefLink = '<a href= device.html?deviceid=' + device.id + '&access_token=' + accessToken + '>' + name + '</a>';
+					var hrefLink = '<a href= device.html?deviceid=' + device.id + '>' + name + '</a>';
 					li.append(hrefLink);
 				} else {
 					//Device not connected
@@ -48,7 +49,7 @@ function reloadDevices(url, accessToken) {
 					//Do nothing.
 				} else {
 					var listItem = $('#' + device.id);
-					var hrefLink = '<a href= device.html?deviceid=' + device.id + '&access_token=' + accessToken + '>' + '</a>';
+					var hrefLink = '<a href= device.html?deviceid=' + device.id + '>' + '</a>';
 					listItem.text(device.name);
 					listItem.append(hrefLink);
 				}
@@ -82,6 +83,41 @@ var getUrlParameter = function getUrlParameter(sParam) {
 		if (sParameterName[0] === sParam) {
 			return sParameterName[1] === undefined ? true : sParameterName[1];
 		}
+	}
+};
+
+var app = {
+	// Application Constructor
+	initialize : function() {
+		this.bindEvents();
+	},
+	// Bind Event Listeners
+	//
+	// Bind any events that are required on startup. Common events are:
+	// 'load', 'deviceready', 'offline', and 'online'.
+	bindEvents : function() {
+		document.addEventListener('deviceready', this.onDeviceReady, false);
+	},
+	// deviceready Event Handler
+	//
+	// The scope of 'this' is the event. In order to call the 'receivedEvent'
+	// function, we must explicitly call 'app.receivedEvent(...);'
+	onDeviceReady : function() {
+		app.receivedEvent('deviceready');
+		(function($) {
+			console.log("deviceReady");
+		})(jQuery);
+	},
+	// Update DOM on a Received Event
+	receivedEvent : function(id) {
+		var parentElement = document.getElementById(id);
+		var listeningElement = parentElement.querySelector('.listening');
+		var receivedElement = parentElement.querySelector('.received');
+
+		listeningElement.setAttribute('style', 'display:none;');
+		receivedElement.setAttribute('style', 'display:block;');
+
+		console.log('Received Event: ' + id);
 	}
 };
 
