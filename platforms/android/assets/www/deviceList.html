@@ -6,21 +6,23 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-		<link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
-		<link rel="stylesheet" href="../js/jquery.mobile/CEv1.min.css">
-        <link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
+		<link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
+		<link rel="stylesheet" href="js/jquery.mobile/CEv1.min.css">
+        <link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
         <title>Mobicle</title>
-        <script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
-        <script type="text/javascript" src="../js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
+        <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+        <script type="text/javascript" src="js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
         <script type="text/javascript" src="mobicle.js"></script>
-        <script type="text/javascript" src="../js/cordova.js"></script>
+        <script type="text/javascript" src="js/cordova.js"></script>
     </head>
-    <body>
-    	<div style="text-align: right">
-    		<button class="ui-btn ui-corner-all" id="logoutbutton" style="display: inline; width: 150px; margin-right: 8px">Log Out</button>
+    <body style="padding-top:30px;">
+    	<div style="padding:0 8px;clear:both;height:80px;">
+    		<button class="ui-btn ui-corner-all" id="refreshbutton" style="display: inline; width: 150px;float:left;">Refresh</button>
+    		<button class="ui-btn ui-corner-all" id="logoutbutton" style="display: inline; width: 150px;float:right;">Log Out</button>
     	</div>
         <ul data-role="listview" id="deviceListView" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Devices</li>
         </ul>
+        <div id="overlay" style="background:white;display:none;opacity:.6;height:100%;width:100%;position:absolute;top:0;left:0;"></div>
     </body>
 </html>

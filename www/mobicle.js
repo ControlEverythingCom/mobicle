@@ -4,35 +4,34 @@
 		console.log("document ready");
 		var ParticleAPI = null;
 		var accessToken = window.localStorage.getItem('access_token');
-		console.log(accessToken);
 
 		$('body').on('load_page_deviceList', function(a, b) {
-			console.log("load_page_deviceList fired");
 			ParticleAPI.updateDevices();
-			$('#logoutbutton').click(ParticleAPI.logOut);
-			if (typeof ParticleAPI.intervals.deviceList === 'undefined' || ParticleAPI.intervals.deviceList == false) {
-				console.log("setting updateDevices interval");
-				ParticleAPI.intervals.deviceList = window.setInterval(function(){
-					ParticleAPI.updateDevices();
-				}, 2000);
-			}else{
-				console.log("not registering updatedDevices interval");
-			}
+			$('#refreshbutton:not(.processed)').addClass('processed').click(function(){ParticleAPI.updateDevices();});
+			$('#logoutbutton:not(.processed)').addClass('processed').click(ParticleAPI.logOut);
 
 		});
 
 		$('body').on('load_page_device', function(a, b) {
+			if(typeof ParticleAPI.updatingDevices !== "undefined"){
+				ParticleAPI.activeRequests.deviceList=false;
+				ParticleAPI.updatingDevices.abort();
+			}
+			console.log('load_page_device');
 			//Cancel interval for checking Particle device online status
-			if (Particle.intervals.deviceList != false) {
-				window.clearInterval(Particle.intervals.deviceList);
-				Particle.intervals.deviceList = false;
+			if (ParticleAPI.intervals.deviceList != false) {
+				console.log("clearing updateDevice interval");
+				window.clearTimeout(ParticleAPI.intervals.deviceList);
+				ParticleAPI.intervals.deviceList = false;
 			}
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
 			$('#devicelistbutton').click(function() {
+				delete device;
 				$('body').pagecontainer('change', 'deviceList.html');
 			});
 			device.loaded(function(device) {
 				var select = $('#buttonFunctionList');
+				select.empty();
 				$('#deviceFunctionList li:not([data-role=list-divider])').each(function() {
 					var option = $('<option></option>').text($(this).text()).val($(this).text());
 					select.append(option);
@@ -127,16 +126,12 @@
 		} else {
 			console.log("accessToken found");
 			ParticleAPI = new Particle(accessToken);
-			console.log(ParticleAPI);
 			var page = window.location.pathname.split('/').pop().replace('.html', '');
 			if (window.location.pathname.indexOf('html') < 0 || page === 'index') {
 				console.log("pathname does not contain html");
 				$('body').pagecontainer('change', 'deviceList.html');
 			} else {
-				console.log(page);
 				var event = 'load_page_' + page;
-				console.log(event);
-				console.log("firing /" + event + "/");
 				$('body').trigger(event);
 				// $('body').pagecontainer('change', 'deviceList.html');
 			}
@@ -150,25 +145,42 @@
 		this.intervals = {
 			deviceList : false
 		};
+		this.activeRequests = {
+			deviceList : false
+		};
 	}
 
 
 	Particle.prototype.logOut = function() {
 		console.log("Logging out");
 		window.localStorage.removeItem('access_token');
-		$('body').pagecontainer('change', 'index.html');
-		$.ready();
+		window.location='/';
+		// $.ready();
+		// $('body').pagecontainer('change', 'index.html');
+		
 	};
 
 	Particle.prototype.updateDevices = function(list) {
+		var ParticleAPI = this;
+		if(ParticleAPI.activeRequests.deviceList===true) return;
+		$('#overlay').css({display:'block'});
+		$.mobile.loading( "show", {
+            text: "loading...",
+            textVisible: true,
+            theme: $.mobile.loader.prototype.options.theme,
+            textonly: false,
+            html: ""
+ 	   });
 		console.log("updateDevices");
 		var devices = null;
-		$.get(this.baseUrl + 'devices?access_token=' + this.accessToken).done(function(devices) {
+		//window.clearTimeout(ParticleAPI.intervals.deviceList);
+		ParticleAPI.activeRequests.deviceList=true;
+		ParticleAPI.updatingDevices=$.ajax({timeout:2000, url:this.baseUrl + 'devices?access_token=' + this.accessToken}).done(function(devices) {
+			if(ParticleAPI.activeRequests.deviceList!==true) return;
+			console.log('stupid fag');
 			$.each(devices, function() {
 				var device = this;
-				console.log(device);
 				var li = $('#' + device.id);
-				console.log(li.attr("class"));
 				
 				//New Device
 				if (li.length == 0) {
@@ -194,8 +206,15 @@
 				}
 			});
 			$('#deviceListView').listview().listview('refresh');
+			ParticleAPI.activeRequests.deviceList=false;
+			$('#overlay').css({display:'none'});
+			$.mobile.loading( "hide" );
+			// ParticleAPI.intervals.deviceList = window.setTimeout(function(){
+					// ParticleAPI.updateDevices();
+				// }, 2000);
 		}).fail(function() {
-			$('#statusLabel').text("Error loading Device List");
+			console.log('oops update devices');
+			window.location=window.location;
 		});
 	};
 	Particle.prototype.updateDevice = function(deviceID) {
@@ -213,6 +232,7 @@
 		this.isLoaded = false;
 		this.buttons = [];
 		this.events = [];
+		this.functions = [];
 		currentDevice = this;
 	}
 
@@ -233,15 +253,15 @@
 	};
 	Device.prototype.update = function() {
 		var device = this;
-		$.get(this.baseUrl + this.urlTail).done(function(data) {
+		$.ajax({timeout:2000, url:this.baseUrl + this.urlTail}).done(function(data) {
 			$('#deviceName').text(data.name);
+			device.data = null;
 			device.data = data;
 			device.updateFunctions();
 			device.updateVariables();
 			device.updateEvents();
 			//window.localStorage.setItem('device_'+device.id+'_buttons','');
 			var buttons = window.localStorage.getItem('device_' + device.id + '_buttons');
-			console.log(buttons);
 			if (buttons) {
 				device.buttons = $.parseJSON(buttons);
 				for (var i = 0; i < device.buttons.length; i++) {
@@ -249,24 +269,34 @@
 				}
 			}
 			var events = window.localStorage.getItem('device_' + device.id + '_events');
-			console.log(events);
-			console.log(device.id);
 			if (events) {
 				device.events = $.parseJSON(events);
-				console.log(device.events);
 				for (var i = 0; i < device.events.length; i++) {
-					device.addEvent(device.events[i], false);
+
+					if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
+					}else{
+						device.addEvent(device.events[i], false);
+					}
+					
 				}
 			}
 			device.loaded();
 			console.log('loaded called');
+		}).fail(function(){
+			window.location=window.location;
+			device.update();
 		});
 	};
+
+
+
 	Device.prototype.updateFunctions = function() {
 		var device = this;
 		$('#deviceFunctionList li:not([data-role=list-divider])').remove();
 		$.each(this.data.functions, function(key, func) {
-			var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).click(function() {
+			device.functions.push(func);
+
+			var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).attr('id', func).click(function() {
 				var userInput = prompt("Enter function Argument");
 				if (userInput) {
 					device.callFunction(func, userInput);
@@ -275,6 +305,8 @@
 		});
 		$('#deviceFunctionList').listview().listview('refresh');
 	};
+
+
 	Device.prototype.updateVariables = function() {
 		var device = this;
 		$.each(this.data.variables, function(key, value) {
@@ -292,10 +324,11 @@
 		var device = this;
 		$.get(device.baseUrl + "/" + key + device.urlTail).done(function(data) {
 			$("li#" + device.id + data.name).text(data.name + ": " + data.result);
+			window.setTimeout(function() {
+				device.updateVariable(key);
+			}, 10000);
 		});
-		window.setTimeout(function() {
-			device.updateVariable(key);
-		}, 10000);
+		
 	};
 	Device.prototype.updateEvents = function() {
 		var device = this;
@@ -310,11 +343,9 @@
 	};
 
 	Device.prototype.addEvent = function(event, add) {
-		console.log("adding event: " + event);
 		var device = this;
 		//Check to see if the event already exists.  If so return
 		if ($('#deviceEventsList').find($('#event')).length) {
-			console.log("event already added");
 			return;
 		}
 
@@ -323,8 +354,6 @@
 			device.events.push(event);
 			var json = JSON.stringify(device.events);
 			window.localStorage.setItem('device_' + device.id + '_events', json);
-			console.log("saved: ");
-			console.log(window.localStorage.getItem('device_' + device.id + '_events'));
 		}
 		//Create the li an list view for the new event
 		var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
@@ -349,14 +378,11 @@
 				clearTimeout(timeoutId);
 				var r = window.confirm("Remove " + event + " Monitor?");
 				if (r) {
-					console.log("removing event");
+					console.log("removing event: "+event);
 					var index = $('#' + event).index() - 1;
-					console.log(index);
 					$('#' + event).remove();
 					device.events.splice(index, 1);
-					console.log(device.events);
 					var json = JSON.stringify(device.events);
-					console.log(json);
 					window.localStorage.setItem('device_' + device.id + '_events', json);
 					$('#deviceEventsList').listview().listview('refresh');
 				}
@@ -378,14 +404,13 @@
 			arg : v,
 			access_token : device.api.accessToken
 		}).success(function(data) {
-			console.log(data);
+			console.log("Function Return: "+data);
 		});
 	};
 	Device.prototype.addEventListener = function(eventString) {
 		var device = this;
 		var eventSubscribeURL = this.baseUrl + "/events" + device.urlTail;
 		var source = new EventSource(eventSubscribeURL);
-		console.log("adding event: " + eventString + " to Listener");
 		source.onopen = function() {
 			source.addEventListener(eventString, function(e) {
 				console.log(eventString + " fired");
@@ -393,9 +418,9 @@
 				$('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
 				$('#' + eventString + 'list').listview().listview('refresh');
 			}, false);
-			source.onerror = function() {
-				console.log("error on Server Event Stream");
-			};
+		};
+		source.onerror = function() {
+			console.log("error on Server Event Stream");
 		};
 		$('#deviceEventsList').listview().listview('refresh');
 	};
@@ -435,7 +460,6 @@
 			if ( typeof add === 'undefined') {
 				this.buttons.push(vals);
 				var json = JSON.stringify(this.buttons);
-				console.log(json);
 				window.localStorage.setItem('device_' + this.id + '_buttons', json);
 			}
 			var li = $('<li></li>').attr("id", id);
@@ -465,10 +489,8 @@
 		console.log("Delete Button function");
 		//Get instance of LI parent before deleting
 		var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
-		console.log(liParent);
 		//Get index of LI so we can reference that index in the buttons array
 		var liIndex = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).index() - 1;
-		console.log(liIndex);
 		//Remove the LI from the view
 		$('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).remove();
 		//Remove button from array

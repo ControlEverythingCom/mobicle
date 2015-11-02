@@ -6,20 +6,26 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-		<link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
-		<link rel="stylesheet" href="../js/jquery.mobile/CEv1.min.css">
-        <link rel="stylesheet" href="../js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
+		<link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
+		<link rel="stylesheet" href="js/jquery.mobile/CEv1.min.css">
+        <link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
         <title>Mobicle</title>
-        <script type="text/javascript" src="../js/jquery-1.11.3.js"></script>
-        <script type="text/javascript" src="../js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
+        <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+        <script type="text/javascript" src="js/jquery.mobile/jquery.mobile-1.4.5.min.js"></script>
         <script type="text/javascript" src="mobicle.js"></script>
-        <script type="text/javascript" src="../js/cordova.js"></script>
+        <script type="text/javascript" src="js/cordova.js"></script>
     </head>
-    <body>
-    	<button class="ui-btn ui-corner-all" id="devicelistbutton" style="display: inline; width: 150px; float:right; margin-right: 8px">
-			Device List
-		</button>
-        <h1 id="deviceName" style="margin-left: 8px"></h1>
+    <body style="padding-top:30px;">
+    	<div>
+    		<div style="padding:0 8px;height:80px;">
+    			<button class="ui-btn ui-corner-all" id="devicelistbutton" style="display: inline; width: 150px; float:left; margin-right: 8px">
+					&lt; - Device List
+				</button>
+	    		<button class="ui-btn ui-corner-all" id="logoutbutton" style="display: inline; width: 150px; float:right;">Log Out</button>
+	    	</div>
+    	</div>
+    	
+        <h1 id="deviceName" style="text-align:center;"></h1>
         
         <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Functions</li>
