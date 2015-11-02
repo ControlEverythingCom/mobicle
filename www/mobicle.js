@@ -1,6 +1,7 @@
 (function($) {
 
 	$(document).ready(function() {
+		
 		console.log("document ready");
 		var ParticleAPI = null;
 		var accessToken = window.localStorage.getItem('access_token');
@@ -8,11 +9,20 @@
 		$('body').on('load_page_deviceList', function(a, b) {
 			ParticleAPI.updateDevices();
 			$('#refreshbutton:not(.processed)').addClass('processed').click(function(){ParticleAPI.updateDevices();});
-			$('#logoutbutton:not(.processed)').addClass('processed').click(ParticleAPI.logOut);
+			$('#logoutbutton:not(.processed)').addClass('processed').click(function(){
+				console.log("Logging out");
+				window.localStorage.removeItem('access_token');
+				window.location.reload(true);
+			});
 
 		});
 
 		$('body').on('load_page_device', function(a, b) {
+			$('#logoutbutton:not(.processed)').addClass('processed').click(function(){
+				console.log("Logging out");
+				window.localStorage.removeItem('access_token');
+				window.location.reload(true);
+			});
 			if(typeof ParticleAPI.updatingDevices !== "undefined"){
 				ParticleAPI.activeRequests.deviceList=false;
 				ParticleAPI.updatingDevices.abort();
@@ -110,17 +120,18 @@
 						ParticleAPI = new Particle(result.access_token);
 						$('body').pagecontainer('change', 'deviceList.html');
 					}
+					window.location.reload(true);
 				});
 				return false;
 			});
-			$('<input type="hidden" name="client_id" value="particle">').appendTo(form);
-			$('<input type="hidden" name="client_secret" value="particle">').appendTo(form);
-			$('<input type="hidden" name="grant_type" value="password">').appendTo(form);
-			$('<label for="username">Email:</label>').appendTo(form);
-			$('<input type="email" name="username" id="username"></input>').appendTo(form);
-			$('<label for="password">Password:</label>').appendTo(form);
-			$('<input type="password" name="password" id="password"></input>').appendTo(form);
-			$('<input type="submit" value="Sign In"></input>').appendTo(form);
+			form.append('<input type="hidden" name="client_id" value="particle">')
+				.append('<input type="hidden" name="client_secret" value="particle">')
+				.append('<input type="hidden" name="grant_type" value="password">')
+				.append('<label for="username">Email:</label>')
+				.append('<input type="email" name="username" id="username"></input>')
+				.append('<label for="password">Password:</label>')
+				.append('<input type="password" name="password" id="password"></input>')
+				.append('<input type="submit" value="Sign In"></input>');
 			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(form);
 			//$('body').pagecontainer('getActivePage').empty();
 			//$.mobile.activePage.append(formWrapper);
@@ -151,10 +162,11 @@
 			} else {
 				var event = 'load_page_' + page;
 				$('body').trigger(event);
+				console.log(event);
 				// $('body').pagecontainer('change', 'deviceList.html');
 			}
 		}
-
+		
 	});
 
 	function Particle(accessToken) {
