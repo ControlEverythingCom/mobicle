@@ -154,7 +154,11 @@
 	Particle.prototype.logOut = function() {
 		console.log("Logging out");
 		window.localStorage.removeItem('access_token');
-		window.location='/';
+		var parts=window.location.href.split('/');
+		var last=parts.pop();
+		if(parts.indexOf('.html')==-1) parts.push(last);
+		var newurl=parts.join('/');
+		window.location=newurl;
 		// $.ready();
 		// $('body').pagecontainer('change', 'index.html');
 		

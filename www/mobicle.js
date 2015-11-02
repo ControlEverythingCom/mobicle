@@ -103,10 +103,10 @@
 				e.preventDefault();
 				$.post($(this).attr('action'), $(this).serialize(), function(result) {
 					console.log(result);
+					
 					if ( typeof result.access_token != 'undefined') {
 						window.localStorage.setItem('access_token', result.access_token);
 						//window.location.href = 'deviceList.html';
-
 						ParticleAPI = new Particle(result.access_token);
 						$('body').pagecontainer('change', 'deviceList.html');
 					}
@@ -121,8 +121,26 @@
 			$('<label for="password">Password:</label>').appendTo(form);
 			$('<input type="password" name="password" id="password"></input>').appendTo(form);
 			$('<input type="submit" value="Sign In"></input>').appendTo(form);
-			form.appendTo($('body').pagecontainer('getActivePage'));
+			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(form);
+			//$('body').pagecontainer('getActivePage').empty();
+			//$.mobile.activePage.append(formWrapper);
+			formWrapper.appendTo($('body').pagecontainer('getActivePage'));
+			//formWrapper.trigger('create');
+			
 			form.trigger('create');
+			intCount=0;
+			formWrapper.popup({dismissible:false});
+			var formint=window.setInterval(function(){
+				if(!formWrapper.parent().hasClass('ui-popup-hidden') || intCount>20){
+					window.clearInterval(formint);
+				}else{
+					formWrapper.popup('open');
+					intCount++;
+				}
+				console.log('STUPID INTERVALS');
+			}, 20);
+			//formWrapper.popup('open');
+			
 		} else {
 			console.log("accessToken found");
 			ParticleAPI = new Particle(accessToken);
@@ -154,8 +172,8 @@
 	Particle.prototype.logOut = function() {
 		console.log("Logging out");
 		window.localStorage.removeItem('access_token');
-		window.location='/';
-		// $.ready();
+		window.location.reload(true);
+		$.ready();
 		// $('body').pagecontainer('change', 'index.html');
 		
 	};
