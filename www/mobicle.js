@@ -336,13 +336,13 @@
 
 			var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).attr('id', func).click(function() {
 				
-				//TODO
+				//TODO bug here
 				$('#callFunctionPopup').popup().css({"padding":"20px"});
-				$('#callFunctionConfirm').click(function(){
+				$('#callFunctionConfirm:not(.processed)').addClass('processed').click(function(){
 					device.callFunction(func, $('#functionArgument').val());
 					$('#callFunctionPopup').popup('close');
 				});
-				$('#callFunctionCancel').click(function(){
+				$('#callFunctionCancel:not(.processed)').addClass('processed').click(function(){
 					$('#callFunctionPopup').popup('close');
 				});
 				$('#callFunctionPopup').popup('open');
@@ -396,7 +396,7 @@
 				$('#addEventPopup').popup('close');
 				$('#deviceEventsList').listview().listview('refresh');
 			});
-			$('#addEventCancelButton').click(function(){
+			$('#addEventCancelButton:not(.processed)').addClass('processed').click(function(){
 				$('#addEventPopup').popup('close');
 			});
 			$('#addEventPopup').popup('open');
