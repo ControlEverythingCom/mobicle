@@ -43,9 +43,11 @@
             <li data-role="list-divider">Buttons<a href="#addButtonPopup" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
             <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
         </ul>
-        <div data-role="popup" id="addButtonPopup" data-position-to="window">
-            <div data-role="header"><h1 role="heading">Add Button</h1></div>
+        <div data-role="popup" id="addButtonPopup" data-position-to="window" style="padding: 20px">
+            <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Button</h1></div>
+            <br>
             <form id="addButtonForm">
+            	
                 <ul data-role="listview" data-inset="true">
                     <li><label>Function</label><select id="buttonFunctionList" name="buttonFunctionList">
                         <option value="_none">Select a Function</option>
@@ -57,6 +59,29 @@
                     <li><input type="submit" value="cancel" /></li>
                 </ul>
             </form>
+        </div>
+        
+        <div data-role="popup" id="removeEventPopup" data-position-to="window">
+        	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Remove Event?</h1></div>
+        	<br>
+        	<ul data-role="listview" data-inset="true">
+        		<li><label id="eventID"></label></li>
+        		<li>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="removeEventConfirmButton" style="float:left">OK</button>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="removeEventCancelButton" style="float:right">Cancel</button>
+        		</li>
+        	</ul>
+        </div>
+        <div data-role="popup" id="addEventPopup" data-position-to="window">
+        	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Add Event</h1></div>
+        	<br>
+        	<ul data-role="listview" data-inset="true">
+        		<li><label>Event</label><input id="eventIDToAdd" type="text"></input></li>
+        		<li>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="addEventConfirmButton" style="float:left">OK</button>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="addEventCancelButton" style="float:right">Cancel</button>
+        		</li>
+        	</ul>
         </div>
     </body>
 </html>

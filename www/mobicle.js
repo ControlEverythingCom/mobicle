@@ -301,6 +301,7 @@
 			var events = window.localStorage.getItem('device_' + device.id + '_events');
 			if (events) {
 				device.events = $.parseJSON(events);
+				console.log(events);
 				for (var i = 0; i < device.events.length; i++) {
 
 					if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
@@ -362,17 +363,33 @@
 	};
 	Device.prototype.updateEvents = function() {
 		var device = this;
-		$('#addEventButton').click(function() {
-			var userInput = prompt("Enter event Argument");
-			//Check to see if user entered anything
-			if (userInput) {
-				device.addEvent(userInput);
-			}
+		$('#addEventButton:not(.processed)').addClass('processed').click(function() {
+			
+			$('#addEventPopup').popup().css({
+				"padding":"20px"
+			});
+			$('#addEventConfirmButton').click(function(){
+				console.log('Adding event');
+				device.addEvent($('#eventIDToAdd').val());
+				$('#addEventPopup').popup('close');
+				$('#deviceEventsList').listview().listview('refresh');
+			});
+			$('#addEventCancelButton').click(function(){
+				$('#addEventPopup').popup('close');
+			});
+			$('#addEventPopup').popup('open');
+			
+			// var userInput = prompt("Enter event Argument");
+			// //Check to see if user entered anything
+			// if (userInput) {
+				// device.addEvent(userInput);
+			// }
 		});
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 
 	Device.prototype.addEvent = function(event, add) {
+		console.log(event);
 		var device = this;
 		//Check to see if the event already exists.  If so return
 		if ($('#deviceEventsList').find($('#event')).length) {
@@ -406,17 +423,29 @@
 			timeoutId = setTimeout(function() {
 				console.log("On Mouse hold");
 				clearTimeout(timeoutId);
-				var r = window.confirm("Remove " + event + " Monitor?");
-				if (r) {
+				$('#removeEventPopup').popup().css({padding:'20px'});
+				$('#eventID').text(event);
+				$('#removeEventConfirmButton').click(function(){
 					console.log("removing event: "+event);
-					var index = $('#' + event).index() - 1;
+					var newArray = [];
+					$(device.events).each(function(){
+						if(this !== event){
+							newArray.push(this);
+						}
+					});
+					device.events = newArray;
 					$('#' + event).remove();
-					device.events.splice(index, 1);
 					var json = JSON.stringify(device.events);
 					window.localStorage.setItem('device_' + device.id + '_events', json);
 					$('#deviceEventsList').listview().listview('refresh');
-				}
-			}, 1000);
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventCancelButton').click(function(){
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventPopup').popup('open');
+				
+			}, 500);
 		}).bind('mouseup mouseleave', function() {
 			clearTimeout(timeoutId);
 		});
@@ -469,7 +498,9 @@
 				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
 				return false;
 			}).appendTo(newLI);
-			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(newLI);
+			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
+				"width":"3.5em"
+			}).appendTo(newLI);
 			//Edit Button click handler
 			edit.click(function() {
 				var buttonIndex = newLI.index();
