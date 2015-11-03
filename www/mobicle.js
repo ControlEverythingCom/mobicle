@@ -36,6 +36,8 @@
 			}
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
 			$('#devicelistbutton').click(function() {
+				device.updateVaraiablesRequest.abort();
+				window.clearTimeout(device.updateVaraiablesTimeout);
 				delete device;
 				$('body').pagecontainer('change', 'deviceList.html');
 			});
@@ -264,6 +266,8 @@
 		this.events = {};
 		this.functions = [];
 		currentDevice = this;
+		this.updateVaraiablesTimeout;
+		this.updateVaraiablesRequest;
 	}
 
 
@@ -356,9 +360,9 @@
 	};
 	Device.prototype.updateVariable = function(key) {
 		var device = this;
-		$.get(device.baseUrl + "/" + key + device.urlTail).done(function(data) {
+		device.updateVaraiablesRequest = $.ajax({timeout : 3000, url : device.baseUrl + "/" + key + device.urlTail}).done(function(data) {
 			$("li#" + device.id + data.name).text(data.name + ": " + data.result);
-			window.setTimeout(function() {
+			device.updateVaraiablesTimeout = window.setTimeout(function() {
 				device.updateVariable(key);
 			}, 10000);
 		});
