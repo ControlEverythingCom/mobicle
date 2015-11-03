@@ -261,7 +261,7 @@
 		this._loaded = [];
 		this.isLoaded = false;
 		this.buttons = [];
-		this.events = [];
+		this.events = {};
 		this.functions = [];
 		currentDevice = this;
 	}
@@ -302,14 +302,17 @@
 			if (events) {
 				device.events = $.parseJSON(events);
 				console.log(events);
-				for (var i = 0; i < device.events.length; i++) {
-
-					if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
-					}else{
-						device.addEvent(device.events[i], false);
-					}
-					
+				for(i in device.events){
+				    device.addEvent(i, false);
 				}
+				// for (var i = 0; i < device.events.length; i++) {
+// 
+					// if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
+					// }else{
+						// device.addEvent(device.events[i], false);
+					// }
+// 					
+				// }
 			}
 			device.loaded();
 			console.log('loaded called');
@@ -368,7 +371,7 @@
 			$('#addEventPopup').popup().css({
 				"padding":"20px"
 			});
-			$('#addEventConfirmButton').click(function(){
+			$('#addEventConfirmButton:not(.processed)').addClass('processed').click(function(){
 				console.log('Adding event');
 				device.addEvent($('#eventIDToAdd').val());
 				$('#addEventPopup').popup('close');
@@ -389,16 +392,15 @@
 	};
 
 	Device.prototype.addEvent = function(event, add) {
-		console.log(event);
 		var device = this;
 		//Check to see if the event already exists.  If so return
-		if ($('#deviceEventsList').find($('#event')).length) {
+		if ($('#deviceEventsList').find($('#'+event)).length) {
 			return;
 		}
 
 		if ( typeof add == 'undefined') {
 			//Save the events to the device events array.
-			device.events.push(event);
+			device.events[event]=event;
 			var json = JSON.stringify(device.events);
 			window.localStorage.setItem('device_' + device.id + '_events', json);
 		}
@@ -427,13 +429,8 @@
 				$('#eventID').text(event);
 				$('#removeEventConfirmButton').click(function(){
 					console.log("removing event: "+event);
-					var newArray = [];
-					$(device.events).each(function(){
-						if(this !== event){
-							newArray.push(this);
-						}
-					});
-					device.events = newArray;
+					delete device.events[event];
+					console.log(device.events);
 					$('#' + event).remove();
 					var json = JSON.stringify(device.events);
 					window.localStorage.setItem('device_' + device.id + '_events', json);
