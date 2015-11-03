@@ -335,10 +335,22 @@
 			device.functions.push(func);
 
 			var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).attr('id', func).click(function() {
-				var userInput = prompt("Enter function Argument");
-				if (userInput) {
-					device.callFunction(func, userInput);
-				}
+				
+				//TODO
+				$('#callFunctionPopup').popup().css({"padding":"20px"});
+				$('#callFunctionConfirm').click(function(){
+					device.callFunction(func, $('#functionArgument').val());
+					$('#callFunctionPopup').popup('close');
+				});
+				$('#callFunctionCancel').click(function(){
+					$('#callFunctionPopup').popup('close');
+				});
+				$('#callFunctionPopup').popup('open');
+				
+				// var userInput = prompt("Enter function Argument");
+				// if (userInput) {
+					// device.callFunction(func, userInput);
+				// }
 			});
 		});
 		$('#deviceFunctionList').listview().listview('refresh');
@@ -348,7 +360,10 @@
 	Device.prototype.updateVariables = function() {
 		var device = this;
 		$.each(this.data.variables, function(key, value) {
-			$('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+			//Make sure the variable is not already in the list
+			if(!$('#deviceVariablesList').find($('#'+device.id+key)).length){
+				$('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+			}
 			device.updateVariable(key);
 		});
 		$('#deviceVariablesList').listview().listview('refresh');
