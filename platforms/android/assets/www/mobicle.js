@@ -36,6 +36,8 @@
 			}
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
 			$('#devicelistbutton').click(function() {
+				device.updateVaraiablesRequest.abort();
+				window.clearTimeout(device.updateVaraiablesTimeout);
 				delete device;
 				$('body').pagecontainer('change', 'deviceList.html');
 			});
@@ -127,12 +129,16 @@
 			form.append('<input type="hidden" name="client_id" value="particle">')
 				.append('<input type="hidden" name="client_secret" value="particle">')
 				.append('<input type="hidden" name="grant_type" value="password">')
-				.append('<label for="username">Email:</label>')
+				.append('<label for="username">Particle Account Email:</label>')
 				.append('<input type="email" name="username" id="username"></input>')
-				.append('<label for="password">Password:</label>')
+				.append('<label for="password">Particle Account Password:</label>')
 				.append('<input type="password" name="password" id="password"></input>')
 				.append('<input type="submit" value="Sign In"></input>');
-			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(form);
+				
+			var loginHeader=$('<div></div>').css({'text-align':'center'});
+			var particleLogo = $('<img src="img/particle.png" style="width:200px;height:200px;"></img>').appendTo(loginHeader);
+				
+			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(loginHeader).append(form);
 			//$('body').pagecontainer('getActivePage').empty();
 			//$.mobile.activePage.append(formWrapper);
 			formWrapper.appendTo($('body').pagecontainer('getActivePage'));
@@ -261,9 +267,11 @@
 		this._loaded = [];
 		this.isLoaded = false;
 		this.buttons = [];
-		this.events = [];
+		this.events = {};
 		this.functions = [];
 		currentDevice = this;
+		this.updateVaraiablesTimeout;
+		this.updateVaraiablesRequest;
 	}
 
 
@@ -301,14 +309,18 @@
 			var events = window.localStorage.getItem('device_' + device.id + '_events');
 			if (events) {
 				device.events = $.parseJSON(events);
-				for (var i = 0; i < device.events.length; i++) {
-
-					if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
-					}else{
-						device.addEvent(device.events[i], false);
-					}
-					
+				console.log(events);
+				for(i in device.events){
+				    device.addEvent(i, false);
 				}
+				// for (var i = 0; i < device.events.length; i++) {
+// 
+					// if ($('#deviceEventsList').find($('#'+device.events[i])).length) {
+					// }else{
+						// device.addEvent(device.events[i], false);
+					// }
+// 					
+				// }
 			}
 			device.loaded();
 			console.log('loaded called');
@@ -327,10 +339,22 @@
 			device.functions.push(func);
 
 			var functionLI = $("<li></li>").appendTo($('#deviceFunctionList')).text(func).attr('id', func).click(function() {
-				var userInput = prompt("Enter function Argument");
-				if (userInput) {
-					device.callFunction(func, userInput);
-				}
+				
+				//TODO bug here
+				$('#callFunctionPopup').popup().css({"padding":"20px"});
+				$('#callFunctionConfirm:not(.processed)').addClass('processed').click(function(){
+					device.callFunction(func, $('#functionArgument').val());
+					$('#callFunctionPopup').popup('close');
+				});
+				$('#callFunctionCancel:not(.processed)').addClass('processed').click(function(){
+					$('#callFunctionPopup').popup('close');
+				});
+				$('#callFunctionPopup').popup('open');
+				
+				// var userInput = prompt("Enter function Argument");
+				// if (userInput) {
+					// device.callFunction(func, userInput);
+				// }
 			});
 		});
 		$('#deviceFunctionList').listview().listview('refresh');
@@ -340,7 +364,10 @@
 	Device.prototype.updateVariables = function() {
 		var device = this;
 		$.each(this.data.variables, function(key, value) {
-			$('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+			//Make sure the variable is not already in the list
+			if(!$('#deviceVariablesList').find($('#'+device.id+key)).length){
+				$('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+			}
 			device.updateVariable(key);
 		});
 		$('#deviceVariablesList').listview().listview('refresh');
@@ -352,9 +379,9 @@
 	};
 	Device.prototype.updateVariable = function(key) {
 		var device = this;
-		$.get(device.baseUrl + "/" + key + device.urlTail).done(function(data) {
+		device.updateVaraiablesRequest = $.ajax({timeout : 3000, url : device.baseUrl + "/" + key + device.urlTail}).done(function(data) {
 			$("li#" + device.id + data.name).text(data.name + ": " + data.result);
-			window.setTimeout(function() {
+			device.updateVaraiablesTimeout = window.setTimeout(function() {
 				device.updateVariable(key);
 			}, 10000);
 		});
@@ -362,12 +389,27 @@
 	};
 	Device.prototype.updateEvents = function() {
 		var device = this;
-		$('#addEventButton').click(function() {
-			var userInput = prompt("Enter event Argument");
-			//Check to see if user entered anything
-			if (userInput) {
-				device.addEvent(userInput);
-			}
+		$('#addEventButton:not(.processed)').addClass('processed').click(function() {
+			
+			$('#addEventPopup').popup().css({
+				"padding":"20px"
+			});
+			$('#addEventConfirmButton:not(.processed)').addClass('processed').click(function(){
+				console.log('Adding event');
+				device.addEvent($('#eventIDToAdd').val());
+				$('#addEventPopup').popup('close');
+				$('#deviceEventsList').listview().listview('refresh');
+			});
+			$('#addEventCancelButton:not(.processed)').addClass('processed').click(function(){
+				$('#addEventPopup').popup('close');
+			});
+			$('#addEventPopup').popup('open');
+			
+			// var userInput = prompt("Enter event Argument");
+			// //Check to see if user entered anything
+			// if (userInput) {
+				// device.addEvent(userInput);
+			// }
 		});
 		$('#deviceEventsList').listview().listview('refresh');
 	};
@@ -375,13 +417,13 @@
 	Device.prototype.addEvent = function(event, add) {
 		var device = this;
 		//Check to see if the event already exists.  If so return
-		if ($('#deviceEventsList').find($('#event')).length) {
+		if ($('#deviceEventsList').find($('#'+event)).length) {
 			return;
 		}
 
 		if ( typeof add == 'undefined') {
 			//Save the events to the device events array.
-			device.events.push(event);
+			device.events[event]=event;
 			var json = JSON.stringify(device.events);
 			window.localStorage.setItem('device_' + device.id + '_events', json);
 		}
@@ -406,17 +448,24 @@
 			timeoutId = setTimeout(function() {
 				console.log("On Mouse hold");
 				clearTimeout(timeoutId);
-				var r = window.confirm("Remove " + event + " Monitor?");
-				if (r) {
+				$('#removeEventPopup').popup().css({padding:'20px'});
+				$('#eventID').text(event);
+				$('#removeEventConfirmButton').click(function(){
 					console.log("removing event: "+event);
-					var index = $('#' + event).index() - 1;
+					delete device.events[event];
+					console.log(device.events);
 					$('#' + event).remove();
-					device.events.splice(index, 1);
 					var json = JSON.stringify(device.events);
 					window.localStorage.setItem('device_' + device.id + '_events', json);
 					$('#deviceEventsList').listview().listview('refresh');
-				}
-			}, 1000);
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventCancelButton').click(function(){
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventPopup').popup('open');
+				
+			}, 500);
 		}).bind('mouseup mouseleave', function() {
 			clearTimeout(timeoutId);
 		});
@@ -469,7 +518,9 @@
 				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
 				return false;
 			}).appendTo(newLI);
-			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(newLI);
+			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
+				"width":"3.5em"
+			}).appendTo(newLI);
 			//Edit Button click handler
 			edit.click(function() {
 				var buttonIndex = newLI.index();

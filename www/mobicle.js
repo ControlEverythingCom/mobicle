@@ -23,7 +23,7 @@
 				window.localStorage.removeItem('access_token');
 				window.location.reload(true);
 			});
-			if(typeof ParticleAPI.updatingDevices !== "undefined"){
+			if(typeof ParticleAPI.updatingDevices !== 'undefined'){
 				ParticleAPI.activeRequests.deviceList=false;
 				ParticleAPI.updatingDevices.abort();
 			}
@@ -34,10 +34,16 @@
 				window.clearTimeout(ParticleAPI.intervals.deviceList);
 				ParticleAPI.intervals.deviceList = false;
 			}
+			console.log(getUrlParameter('deviceid'));
+			console.log(ParticleAPI);
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
+			console.log(device);
 			$('#devicelistbutton').click(function() {
-				device.updateVaraiablesRequest.abort();
-				window.clearTimeout(device.updateVaraiablesTimeout);
+				console.log("deviceListButton");
+				if(typeof device.updateVaraiablesRequest !== 'undefined'){
+					device.updateVaraiablesRequest.abort();
+					window.clearTimeout(device.updateVaraiablesTimeout);
+				}
 				delete device;
 				$('body').pagecontainer('change', 'deviceList.html');
 			});
@@ -129,12 +135,16 @@
 			form.append('<input type="hidden" name="client_id" value="particle">')
 				.append('<input type="hidden" name="client_secret" value="particle">')
 				.append('<input type="hidden" name="grant_type" value="password">')
-				.append('<label for="username">Email:</label>')
+				.append('<label for="username">Particle Account Email:</label>')
 				.append('<input type="email" name="username" id="username"></input>')
-				.append('<label for="password">Password:</label>')
+				.append('<label for="password">Particle Account Password:</label>')
 				.append('<input type="password" name="password" id="password"></input>')
 				.append('<input type="submit" value="Sign In"></input>');
-			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(form);
+				
+			var loginHeader=$('<div></div>').css({'text-align':'center'});
+			var particleLogo = $('<img src="img/particle.png" style="width:200px;height:200px;"></img>').appendTo(loginHeader);
+				
+			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(loginHeader).append(form);
 			//$('body').pagecontainer('getActivePage').empty();
 			//$.mobile.activePage.append(formWrapper);
 			formWrapper.appendTo($('body').pagecontainer('getActivePage'));
@@ -209,7 +219,6 @@
 		ParticleAPI.activeRequests.deviceList=true;
 		ParticleAPI.updatingDevices=$.ajax({timeout:2000, url:this.baseUrl + 'devices?access_token=' + this.accessToken}).done(function(devices) {
 			if(ParticleAPI.activeRequests.deviceList!==true) return;
-			console.log('stupid fag');
 			$.each(devices, function() {
 				var device = this;
 				var li = $('#' + device.id);
