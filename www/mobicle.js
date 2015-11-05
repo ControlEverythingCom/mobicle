@@ -161,7 +161,7 @@
 					intCount++;
 				}
 				console.log('STUPID INTERVALS');
-			}, 20);
+			}, 500);
 			//formWrapper.popup('open');
 			
 		} else {
