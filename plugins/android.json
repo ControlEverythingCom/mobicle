@@ -11,6 +11,10 @@
                         {
                             "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" value=\"org.apache.cordova.statusbar.StatusBar\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -22,6 +26,9 @@
             "PACKAGE_NAME": "io.andor.particle"
         },
         "cordova-plugin-console": {
+            "PACKAGE_NAME": "io.andor.particle"
+        },
+        "cordova-plugin-statusbar": {
             "PACKAGE_NAME": "io.andor.particle"
         }
     },

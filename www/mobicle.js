@@ -102,8 +102,6 @@
 				window.clearTimeout(ParticleAPI.intervals.deviceList);
 				ParticleAPI.intervals.deviceList = false;
 			}
-			console.log(getUrlParameter('deviceid'));
-			// console.log(ParticleAPI);
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
 			// console.log(device);
 			$('#devicelistbutton').click(function() {
@@ -171,8 +169,6 @@
 				
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
-				console.log("addButtonPopup.on(popupafterclose)");
-				console.log($('#addButtonPopup'));
 				$('[name=buttonFunctionList]').val('_none');
 				$('[name=buttonName]').val('');
 				$('[name=buttonArguments]').val('');
@@ -180,15 +176,10 @@
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
-				console.log(a);
-				console.log(b);
 				if ( typeof b.absUrl == 'undefined') {
-					console.log("b.absUrl undefined");
 					var url = b.options.dataUrl;
 				} else {
 					var url = b.absUrl;
-					console.log('b.absUrl: '+b.absUrl);
-					console.log('b.options.dataUrl: '+b.options.dataUrl);
 				}
 				var l = document.createElement("a");
 				l.href = url;
