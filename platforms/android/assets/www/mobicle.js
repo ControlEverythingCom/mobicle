@@ -5,6 +5,74 @@
 		console.log("document ready");
 		var ParticleAPI = null;
 		var accessToken = window.localStorage.getItem('access_token');
+		
+		$('body').on('load_page_index', function(a, b){
+			console.log('index page loaded');
+			if ( typeof accessToken == 'undefined' || accessToken == null) {
+			console.log("accessToken not found");
+			var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
+			form.on("submit", function(e) {
+				e.preventDefault();
+				$.post($(this).attr('action'), $(this).serialize(), function(result) {
+					console.log(result);
+					
+					if ( typeof result.access_token != 'undefined') {
+						window.localStorage.setItem('access_token', result.access_token);
+						//window.location.href = 'deviceList.html';
+						ParticleAPI = new Particle(result.access_token);
+						$('body').pagecontainer('change', 'deviceList.html');
+					}
+					window.location.reload(true);
+				});
+				return false;
+			});
+			form.append('<input type="hidden" name="client_id" value="particle">')
+				.append('<input type="hidden" name="client_secret" value="particle">')
+				.append('<input type="hidden" name="grant_type" value="password">')
+				.append('<label for="username">Particle Account Email:</label>')
+				.append('<input type="email" name="username" id="username"></input>')
+				.append('<label for="password">Particle Account Password:</label>')
+				.append('<input type="password" name="password" id="password"></input>')
+				.append('<input type="submit" value="Sign In"></input>');
+				
+			var loginHeader=$('<div></div>').css({'text-align':'center'});
+			var particleLogo = $('<img src="img/particle.png" style="width:200px;height:200px;"></img>').appendTo(loginHeader);
+				
+			var formWrapper=$('<div id="loginWrapper"></div>').css({padding:'20px'}).append(loginHeader).append(form);
+			//$('body').pagecontainer('getActivePage').empty();
+			//$.mobile.activePage.append(formWrapper);
+			formWrapper.appendTo($('body').pagecontainer('getActivePage'));
+			//formWrapper.trigger('create');
+			
+			form.trigger('create');
+			intCount=0;
+			formWrapper.popup({dismissible:false});
+			var formint=window.setInterval(function(){
+				if(!formWrapper.parent().hasClass('ui-popup-hidden') || intCount>20){
+					window.clearInterval(formint);
+				}else{
+					formWrapper.popup('open');
+					intCount++;
+				}
+				console.log('STUPID INTERVALS');
+			}, 500);
+			//formWrapper.popup('open');
+			
+		} else {
+			console.log("accessToken found");
+			ParticleAPI = new Particle(accessToken);
+			var page = window.location.pathname.split('/').pop().replace('.html', '');
+			if (window.location.pathname.indexOf('html') < 0 || page === 'index') {
+				console.log("pathname does not contain html");
+				$('body').pagecontainer('change', 'deviceList.html');
+			} else {
+				var event = 'load_page_' + page;
+				$('body').trigger(event);
+				console.log(event);
+				$('body').pagecontainer('change', 'deviceList.html');
+			}
+		}
+		});
 
 		$('body').on('load_page_deviceList', function(a, b) {
 			ParticleAPI.updateDevices();
@@ -23,7 +91,7 @@
 				window.localStorage.removeItem('access_token');
 				window.location.reload(true);
 			});
-			if(typeof ParticleAPI.updatingDevices !== "undefined"){
+			if(typeof ParticleAPI.updatingDevices !== 'undefined'){
 				ParticleAPI.activeRequests.deviceList=false;
 				ParticleAPI.updatingDevices.abort();
 			}
@@ -34,31 +102,26 @@
 				window.clearTimeout(ParticleAPI.intervals.deviceList);
 				ParticleAPI.intervals.deviceList = false;
 			}
+			console.log(getUrlParameter('deviceid'));
+			// console.log(ParticleAPI);
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
+			// console.log(device);
 			$('#devicelistbutton').click(function() {
-				device.updateVaraiablesRequest.abort();
-				window.clearTimeout(device.updateVaraiablesTimeout);
+				console.log("deviceListButton");
+				if(typeof device.updateVaraiablesRequest !== 'undefined'){
+					device.updateVaraiablesRequest.abort();
+					window.clearTimeout(device.updateVaraiablesTimeout);
+				}
 				delete device;
 				$('body').pagecontainer('change', 'deviceList.html');
 			});
-			device.loaded(function(device) {
-				var select = $('#buttonFunctionList');
-				select.empty();
-				$('#deviceFunctionList li:not([data-role=list-divider])').each(function() {
-					var option = $('<option></option>').text($(this).text()).val($(this).text());
-					select.append(option);
-				});
-				select.selectmenu();
-				select.selectmenu('refresh', true);
-				console.log(select);
-				//Handle submit button clicks on forms.  Intercepts prior to form submit
-				$("form input[type=submit]").click(function() {
-					$("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
-					$(this).attr("clicked", "true");
-				});
-
+			
+			$('#addButtonButton:not(.processed)').addClass('processed').click(function(){
+				console.log("addButtonButton clicked");
+				$('#addButtonPopup').popup();
 				//Handle form submit
 				$('#addButtonForm').submit(function() {
+					
 
 					var val = $("input[type=submit][clicked=true]").val();
 					switch(val) {
@@ -84,8 +147,32 @@
 					}
 
 				});
+				$('#addButtonPopup').removeClass('ui-popup-hidden').popup('open');
+				console.log("popup called");
+				console.log($('#addButtonPopup'));
+			});
+			
+			device.loaded(function(device) {
+				var select = $('#buttonFunctionList');
+				select.empty();
+				$('#deviceFunctionList li:not([data-role=list-divider])').each(function() {
+					var option = $('<option></option>').text($(this).text()).val($(this).text());
+					select.append(option);
+				});
+				select.selectmenu();
+				select.selectmenu('refresh', true);
+				// console.log(select);
+				//Handle submit button clicks on forms.  Intercepts prior to form submit
+				$("form input[type=submit]").click(function() {
+					$("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
+					$(this).attr("clicked", "true");
+				});
+
+				
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
+				console.log("addButtonPopup.on(popupafterclose)");
+				console.log($('#addButtonPopup'));
 				$('[name=buttonFunctionList]').val('_none');
 				$('[name=buttonName]').val('');
 				$('[name=buttonArguments]').val('');
@@ -93,18 +180,22 @@
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
+				console.log(a);
+				console.log(b);
 				if ( typeof b.absUrl == 'undefined') {
+					console.log("b.absUrl undefined");
 					var url = b.options.dataUrl;
 				} else {
 					var url = b.absUrl;
+					console.log('b.absUrl: '+b.absUrl);
+					console.log('b.options.dataUrl: '+b.options.dataUrl);
 				}
 				var l = document.createElement("a");
 				l.href = url;
 				var page = l.pathname.split('/').pop().replace('.html', '');
 				var event = 'load_page_' + page;
-
-				$('body').trigger(event, a, b);
 				console.log(event + ' triggered');
+				$('body').trigger(event, a, b);				
 			}
 		});
 
@@ -155,7 +246,7 @@
 					intCount++;
 				}
 				console.log('STUPID INTERVALS');
-			}, 20);
+			}, 500);
 			//formWrapper.popup('open');
 			
 		} else {
@@ -213,7 +304,6 @@
 		ParticleAPI.activeRequests.deviceList=true;
 		ParticleAPI.updatingDevices=$.ajax({timeout:2000, url:this.baseUrl + 'devices?access_token=' + this.accessToken}).done(function(devices) {
 			if(ParticleAPI.activeRequests.deviceList!==true) return;
-			console.log('stupid fag');
 			$.each(devices, function() {
 				var device = this;
 				var li = $('#' + device.id);
@@ -605,3 +695,27 @@ function getUrlParameter(sParam) {
 		}
 	}
 };
+
+/*
+{"prevPage":{"0":{},"length":1},
+"toPage":{"0":{"jQuery111307613389508333057":238},"length":1},
+"options":{
+	"type":"get",
+	"reloadPage":false,
+	"reload":false,
+	"showLoadMsg":true,
+	"loadMsgDelay":50,
+	"reverse":true,
+	"changeHash":false,
+	"fromHashChange":true,
+	"allowSamePageTransition":false,
+	"hash":"#/Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html",
+	"url":"file:///Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html",
+	"title":"My Devices","transition":"fade","pageUrl":"/Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html",
+	"direction":"back","fromPage":{"0":{},"length":1},
+	"target":"file:///Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html",
+	"deferred":{},"absUrl":"file:///Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html"},
+
+"absUrl":"file:///Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html"
+}2015 - 11 - 06 09:06:59.529 Mobicle[13693:641408] b.absUrl: file:///Users/travis/Library/Developer/CoreSimulator/Devices/EDDC1A37-2E21-4729-8D5A-5A3516BA1CC6/data/Containers/Bundle/Application/2C93ED4B-102D-4356-A619-9F4A56BF780E/Mobicle.app/www/deviceList.html
+*/

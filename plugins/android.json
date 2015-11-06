@@ -20,6 +20,9 @@
     "installed_plugins": {
         "cordova-plugin-whitelist": {
             "PACKAGE_NAME": "io.andor.particle"
+        },
+        "cordova-plugin-console": {
+            "PACKAGE_NAME": "io.andor.particle"
         }
     },
     "dependent_plugins": {}

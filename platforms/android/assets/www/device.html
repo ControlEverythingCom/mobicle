@@ -40,10 +40,10 @@
         </ul>
         <br />
         <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
-            <li data-role="list-divider">Buttons<a href="#addButtonPopup" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
+            <li data-role="list-divider">Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
             <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
         </ul>
-        <div data-role="popup" id="addButtonPopup" data-position-to="window" style="padding: 20px">
+        <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
             <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Button</h1></div>
             <br>
             <form id="addButtonForm">
@@ -61,7 +61,7 @@
             </form>
         </div>
         
-        <div data-role="popup" id="removeEventPopup" data-position-to="window">
+        <div data-role="popup" data-history="false" id="removeEventPopup" data-position-to="window">
         	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Remove Event?</h1></div>
         	<br>
         	<ul data-role="listview" data-inset="true">
@@ -72,7 +72,7 @@
         		</li>
         	</ul>
         </div>
-        <div data-role="popup" id="addEventPopup" data-position-to="window">
+        <div data-role="popup" data-history="false" id="addEventPopup" data-position-to="window">
         	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Add Event</h1></div>
         	<br>
         	<ul data-role="listview" data-inset="true">
@@ -83,7 +83,7 @@
         		</li>
         	</ul>
         </div>
-        <div data-role="popup" id="callFunctionPopup" data-position-to="window">
+        <div data-role="popup" data-history="false" id="callFunctionPopup" data-position-to="window">
         	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Add Event</h1></div>
         	<br>
         	<ul data-role="listview" data-inset="true">
