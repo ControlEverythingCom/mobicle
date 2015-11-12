@@ -103,7 +103,7 @@
 				ParticleAPI.intervals.deviceList = false;
 			}
 			var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-			// console.log(device);
+			console.log(device);
 			$('#devicelistbutton').click(function() {
 				console.log("deviceListButton");
 				if(typeof device.updateVaraiablesRequest !== 'undefined'){
@@ -118,7 +118,7 @@
 				console.log("addButtonButton clicked");
 				$('#addButtonPopup').popup();
 				//Handle form submit
-				$('#addButtonForm').submit(function() {
+				$('#addButtonForm:not(.processed)').addClass('processed').submit(function() {
 					
 
 					var val = $("input[type=submit][clicked=true]").val();
@@ -169,10 +169,12 @@
 				
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
-				$('[name=buttonFunctionList]').val('_none');
+				console.log("addButtonPopup closed");
+				// $('[name=buttonFunctionList]').val('_none');
 				$('[name=buttonName]').val('');
 				$('[name=buttonArguments]').val('');
 			});
+
 		});
 		$('body').pagecontainer({
 			change : function(a, b) {
@@ -585,6 +587,7 @@
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 	Device.prototype.addButton = function(vals, add) {
+		console.log(vals);
 		var device = this;
 		var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
 
@@ -633,13 +636,39 @@
 			li.appendTo('#deviceButtonList');
 			//Edit Button click handler
 			edit.click(function() {
-
+				$('#addButtonPopup').popup();
+				$('#addButtonForm:not(.processed)').addClass('processed').submit(function() {
+					var val = $("input[type=submit][clicked=true]").val();
+					switch(val) {
+					case "submit":
+						console.log("form submit");
+						var vals = $(this).getValues();
+						device.addButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "delete":
+						console.log("form delete");
+						var vals = $(this).getValues();
+						device.deleteButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "cancel":
+						console.log("form cancel");
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					}
+				});
 				var buttonIndex = li.index();
 				var b = device.buttons[buttonIndex - 1];
 				$.each(b, function(name, value) {
+					$('#addButtonPopup').attr("data-history","false").popup();
 					$('[name=' + name + ']').val(value);
-					$('#addButtonPopup').popup('open');
+					
 				});
+				$('#addButtonPopup').popup('open');
 			});
 			li.parent().listview().listview('refresh');
 		}
@@ -649,6 +678,7 @@
 		//Get instance of device object
 		var device = this;
 		console.log("Delete Button function");
+		console.log(vals);
 		//Get instance of LI parent before deleting
 		var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
 		//Get index of LI so we can reference that index in the buttons array
