@@ -91,6 +91,10 @@
 				window.localStorage.removeItem('access_token');
 				window.location.reload(true);
 			});
+			
+			$('#addEventPublishButton:not(.processed)').addClass('processed').click(function() {
+				
+			});
 
 		});
 
@@ -124,89 +128,40 @@
 			});
 			
 
-			$('#addButtonButton:not(.processed)').addClass('processed').click(function() {
-				console.log("addButtonButton clicked");
+			$('#addButtonButton').click(function() {
+				$('#addButtonPopup').popup();
+				//Handle form submit
+				$('#addButtonForm:not(.processed)').addClass('processed').submit(function() {
 
-				$('#buttonTypePopup').popup();
-				$('#functionTypeButton:not(.processed)').addClass('processed').click(function() {
-					$('#buttonTypePopup').popup('close');
-					$('#addButtonPopup').popup();
-					//Handle form submit
-					$('#addButtonForm:not(.processed)').addClass('processed').submit(function() {
+					var val = $("input[type=submit][clicked=true]").val();
+					switch(val) {
+					case "submit":
+						console.log("form submit");
+						var vals = $(this).getValues();
+						device.addButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "delete":
+						console.log("form delete");
+						var vals = $(this).getValues();
+						device.deleteButton(vals);
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					case "cancel":
+						console.log("form cancel");
+						$('#addButtonPopup').popup('close');
+						return false;
+						break;
+					}
 
-						var val = $("input[type=submit][clicked=true]").val();
-						switch(val) {
-						case "submit":
-							console.log("form submit");
-							var vals = $(this).getValues();
-							device.addButton(vals);
-							$('#addButtonPopup').popup('close');
-							return false;
-							break;
-						case "delete":
-							console.log("form delete");
-							var vals = $(this).getValues();
-							device.deleteButton(vals);
-							$('#addButtonPopup').popup('close');
-							return false;
-							break;
-						case "cancel":
-							console.log("form cancel");
-							$('#addButtonPopup').popup('close');
-							return false;
-							break;
-						}
-
-					});
-					$('#addButtonPopup').removeClass('ui-popup-hidden').popup('open');
-					console.log("popup called");
-					console.log($('#addButtonPopup'));
 				});
-
-				$('#publishEventTypeButton:not(.processed)').addClass('processed').click(function() {
-					console.log("add Event Publish Button");
-					$('#buttonTypePopup').popup('close');
-					$('#addEventPublishButtonPopup').popup();
-					//Handle form submit
-					$('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-
-						var val = $("input[type=submit][clicked=true]").val();
-						switch(val) {
-						case "submit":
-							console.log("Add Event form submit");
-							var vals = $(this).getValues();
-							device.addEventButton(vals);
-							$('#addEventPublishButtonPopup').popup('close');
-							return false;
-							break;
-						case "delete":
-							console.log("form delete");
-							var vals = $(this).getValues();
-							device.deleteButton(vals);
-							$('#addEventPublishButtonPopup').popup('close');
-							return false;
-							break;
-						case "cancel":
-							console.log("form cancel");
-							$('#addEventPublishButtonPopup').popup('close');
-							return false;
-							break;
-						}
-
-					});
-					$('#addEventPublishButtonPopup').removeClass('ui-popup-hidden').popup('open');
-					
-				});
-				
-				$('#cancelTypeButton:not(.processed)').addClass('processed').click(function() {
-					$('#buttonTypePopup').popup('close');
-				});
-				
-				$('#buttonTypePopup').removeClass('ui-popup-hidden').popup('open');
-
+				$('#addButtonPopup').removeClass('ui-popup-hidden').popup('open');
+				console.log("popup called");
+				console.log($('#addButtonPopup'));
 			}); 
 
-			
 			device.loaded(function(device) {
 				var select = $('#buttonFunctionList');
 				select.empty();
