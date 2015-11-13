@@ -105,14 +105,14 @@
 						case "submit":
 							console.log("Add Event form submit");
 							var vals = $(this).getValues();
-							device.addEventButton(vals);
+							ParticleAPI.addEventButton(vals);
 							$('#addEventPublishButtonPopup').popup('close');
 							return false;
 							break;
 						case "delete":
 							console.log("form delete");
 							var vals = $(this).getValues();
-							device.deleteButton(vals);
+							ParticleAPI.deleteButton(vals);
 							$('#addEventPublishButtonPopup').popup('close');
 							return false;
 							break;
@@ -126,6 +126,7 @@
 					});
 					$('#addEventPublishButtonPopup').popup('open');
 			});
+
 			$('#addEventPublishButtonPopup').on('popupafterclose', function() {
 				console.log('addEventPublishButtonPopup closed');
 				$('[name=buttonName]').val('');
@@ -133,11 +134,34 @@
 				$('[name=eventData]').val('');
 				$('[name=eventTTL]').val('');
 			});
+
 			$('#addEventButton:not(.processed)').addClass('processed').click(function() {
 				console.log("addEventMonitorButton clicked");
+
+				$('#addEventPopup').popup().css({
+					"padding" : "20px"
+				});
+				$('#addEventConfirmButton:not(.processed)').addClass('processed').click(function() {
+					console.log('Adding event');
+					ParticleAPI.addEventMonitor($('#eventIDToAdd').val());
+					$('#addEventPopup').popup('close');
+					$('#deviceEventsList').listview().listview('refresh');
+				});
+				$('#addEventCancelButton:not(.processed)').addClass('processed').click(function() {
+					$('#addEventPopup').popup('close');
+				});
+				$('#addEventPopup').popup('open');
+
+				// var userInput = prompt("Enter event Argument");
+				// //Check to see if user entered anything
+				// if (userInput) {
+				// device.addEvent(userInput);
+				// }
+			}); 
+
+
 			});
 
-		});
 
 		$('body').on('load_page_device', function(a, b) {
 			$('#logoutbutton:not(.processed)').addClass('processed').click(function(){
@@ -312,19 +336,16 @@
 				// $('body').pagecontainer('change', 'deviceList.html');
 			}
 		}
-		$( "[data-role='panel']" ).panel().trigger("create");
-		$( "[data-role='header'], [data-role='footer']" ).toolbar();
-		$('#log').listview({
-            autodividers:true,
-            autodividersSelector:function(elt){
-                return elt.find('.device-name').text()+' - '+elt.find('.activity-type').text();
-            }
-        }).listview('refresh');
+		
 	});
 
 	function Particle(accessToken) {
 		this.baseUrl = 'https://api.particle.io/v1/';
+		this.publishEventBaseUrl = this.baseUrl + 'devices/events';
 		this.accessToken = accessToken;
+		this.eventMonitor = [];
+		this.eventPublish = [];
+		this.events = {};
 		this.intervals = {
 			deviceList : false
 		};
@@ -333,14 +354,12 @@
 		};
 	}
 
-
 	Particle.prototype.logOut = function() {
 		console.log("Logging out");
 		window.localStorage.removeItem('access_token');
 		window.location.reload(true);
 		$.ready();
 		// $('body').pagecontainer('change', 'index.html');
-		
 	};
 
 	Particle.prototype.updateDevices = function(list) {
@@ -391,6 +410,7 @@
 			ParticleAPI.activeRequests.deviceList=false;
 			$('#overlay').css({display:'none'});
 			$.mobile.loading( "hide" );
+			ParticleAPI.updateEvents();
 			// ParticleAPI.intervals.deviceList = window.setTimeout(function(){
 					// ParticleAPI.updateDevices();
 				// }, 2000);
@@ -399,6 +419,238 @@
 			window.location=window.location;
 		});
 	};
+	
+	Particle.prototype.updateEvents = function(){
+		var particle = this;
+		var eventButtons = window.localStorage.getItem('event_publish_buttons');
+		var eventMonitors = window.localStorage.getItem('event_monitors');
+		
+		if (eventButtons) {
+			particle.eventPublish = $.parseJSON(eventButtons);
+			for (var i = 0; i < particle.eventPublish.length; i++) {
+				particle.addEventButton(particle.eventPublish[i], false);
+			}
+		}
+
+		if(eventMonitors){
+			particle.eventMonitor = $.parseJSON(eventMonitors);
+			for (var i = 0; i < particle.eventMonitor.length; i++) {
+				particle.addEventMonitor(particle.eventMonitor[i], false);
+			}
+		}
+	};
+	Particle.prototype.addEventButton = function(vals, add){
+		console.log(vals);
+		var particle = this;
+		var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
+
+		//Check to see if parent list view has child with this id already.  If so we are editing
+		if ($('#eventPublishButtonList').find($('#' + id)).length) {
+			//We are editing.
+			console.log("editing button");
+			//Get instance of old LI so we can replace with the new one
+			var oldLI = $('#' + id);
+			var newLI = $('<li></li>').attr("id", id);
+			var button = $('<a></a>').text(vals.buttonName).click(function() {
+				particle.publishEvent(vals.eventName, vals.eventData, vals.eventTTL);
+				return false;
+			}).appendTo(newLI);
+			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
+				"width":"3.5em"
+			}).appendTo(newLI);
+			//Edit Button click handler
+			edit.click(function() {
+				var buttonIndex = newLI.index();
+				var b = particle.eventPublish[buttonIndex - 1];
+				$.each(b, function(name, value) {
+					$('[name=' + name + ']').val(value);	
+				});
+				$('#addEventPublishButtonPopup').popup('open');
+			});
+			var index = oldLI.index() - 1;
+			oldLI.replaceWith(newLI);
+
+			this.eventMonitor.splice(index, 1, vals);
+			var json = JSON.stringify(this.eventMonitor);
+			window.localStorage.setItem('event_publish_buttons', json);
+			newLI.parent().listview().listview('refresh');
+		} else {
+			if ( typeof add === 'undefined') {
+				this.eventMonitor.push(vals);
+				var json = JSON.stringify(this.eventMonitor);
+				window.localStorage.setItem('event_publish_buttons', json);
+			}
+			var li = $('<li></li>').attr("id", id);
+			var button = $('<a></a>').text(vals.buttonName).click(function() {
+				particle.publishEvent(vals.eventName, vals.eventData, vals.eventTTL);
+				return false;
+			}).appendTo(li);
+			var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
+			li.appendTo('#eventPublishButtonList');
+			//Edit Button click handler
+			edit.click(function() {
+				$('#addEventPublishButtonPopup').popup();
+					//Handle form submit
+					$('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
+
+						var val = $("input[type=submit][clicked=true]").val();
+						switch(val) {
+						case "submit":
+							console.log("form submit");
+							var vals = $(this).getValues();
+							device.addEventButton(vals);
+							console.log(vals);
+							$('#addEventPublishButtonPopup').popup('close');
+							return false;
+							break;
+						case "delete":
+							console.log("form delete");
+							var vals = $(this).getValues();
+							// device.deleteButton(vals);
+							$('#addEventPublishButtonPopup').popup('close');
+							return false;
+							break;
+						case "cancel":
+							console.log("form cancel");
+							$('#addEventPublishButtonPopup').popup('close');
+							return false;
+							break;
+						}
+
+					});
+				var buttonIndex = li.index();
+				var b = device.buttons[buttonIndex - 1];
+				$.each(b, function(name, value) {
+					$('[name=' + name + ']').val(value);
+					
+				});
+				$('#addEventPublishButtonPopup').popup('open');
+			});
+			li.parent().listview().listview('refresh');
+		}
+	};
+	Particle.prototype.addEventMonitor = function(event, add) {
+		console.log('addEventMonitor');
+		console.log(add);
+		var p = this;
+		//Check to see if the event already exists.  If so return
+		if ($('#deviceEventsList').find($('#'+event)).length) {
+			return;
+		}
+
+		if ( typeof add == 'undefined') {
+			console.log('saving event monitor');
+			//Save the events to the device events array.
+			p.events[event]=event;
+			p.eventMonitor.push(event);
+			var json = JSON.stringify(p.eventMonitor);
+			window.localStorage.setItem('event_monitors', json);
+		}
+		//Create the li an list view for the new event
+		var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
+			"padding" : "0px"
+		}).attr("id", event);
+
+		var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event).css('margin', '0px').appendTo(collapsibleli);
+
+		var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "list").listview();
+		collapsibleli.append(ul).appendTo($('#deviceEventsList')).collapsible({
+			refresh : true
+		});
+		var pHeight = h2.parent().height();
+		h2.height(pHeight);
+
+		//On hold listener for delete
+		var timeoutId = 0;
+
+		collapsibleli.mousedown(function() {
+			timeoutId = setTimeout(function() {
+				console.log("On Mouse hold");
+				clearTimeout(timeoutId);
+				$('#removeEventPopup').popup().css({padding:'20px'});
+				$('#eventID').text(event);
+				$('#removeEventConfirmButton').click(function(){
+					console.log("removing event: "+event);
+					delete p.eventMonitor[event];
+					console.log(p.eventMonitor);
+					$('#' + event).remove();
+					var json = JSON.stringify(p.eventMonitor);
+					window.localStorage.setItem('event_monitors', json);
+					$('#deviceEventsList').listview().listview('refresh');
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventCancelButton').click(function(){
+					$('#removeEventPopup').popup('close');
+				});
+				$('#removeEventPopup').popup('open');
+				
+			}, 500);
+		}).bind('mouseup mouseleave', function() {
+			clearTimeout(timeoutId);
+		});
+
+		ul.listview().listview('refresh');
+		$('#deviceEventsList').listview().listview('refresh');
+
+		//Add the listener for the event
+		p.addEventListener(event);
+	};
+	
+	Particle.prototype.addEventListener = function(eventString) {
+		//TODO finish this.
+		console.log("Particle.addEventListener");
+		console.log(this.accessToken);
+		var particle = this;
+		var eventSubscribeURL = this.baseUrl + "devices/events?access_token="+this.accessToken;
+		var source = new EventSource(eventSubscribeURL);
+		source.onopen = function() {
+			source.addEventListener(eventString, function(e) {
+				console.log(eventString + " fired");
+				var data = JSON.parse(e.data);
+				$('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+				$('#' + eventString + 'list').listview().listview('refresh');
+			}, false);
+		};
+		source.onerror = function() {
+			console.log("error on Server Event Stream");
+		};
+		$('#deviceEventsList').listview().listview('refresh');
+	};
+	
+	Particle.prototype.publishEvent = function(eventName, eventData, eventTTL){
+		//publishEventBaseUrl
+		var particle = this;
+		$.post(particle.publishEventBaseUrl, {
+			name : eventName,
+			data: eventData,
+			private : 'true',
+			ttl : eventTTL,
+			access_token : particle.accessToken
+		}).success(function(data) {
+			console.log("Function Return: "+data);
+		});
+	};
+	
+	Particle.prototype.removeEventPublishButton = function(vals){
+		//Get instance of device object
+		var particle = this;
+		console.log("Delete Button function");
+		console.log(vals);
+		//Get instance of LI parent before deleting
+		var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
+		//Get index of LI so we can reference that index in the buttons array
+		var liIndex = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).index() - 1;
+		//Remove the LI from the view
+		$('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).remove();
+		//Remove button from array
+		particle.eventPublish.splice(liIndex, 1);
+		//Save array
+		var json = JSON.stringify(particle.eventPublish);
+		window.localStorage.setItem('event_publish_buttons', json);
+		//refresh button list view
+		liParent.listview().listview('refresh');
+	};
+	
 	Particle.prototype.updateDevice = function(deviceID) {
 		var device = new Device(this, deviceID);
 		device.update();
@@ -409,7 +661,6 @@
 		this.api = api;
 		this.id = did;
 		this.baseUrl = this.api.baseUrl + 'devices/' + this.id;
-		this.publishEventBaseUrl = this.api.baseUrl + 'devices/events';
 		this.urlTail = "?access_token=" + this.api.accessToken;
 		this._loaded = [];
 		this.isLoaded = false;
@@ -562,110 +813,17 @@
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 
-	Device.prototype.addEvent = function(event, add) {
-		var device = this;
-		//Check to see if the event already exists.  If so return
-		if ($('#deviceEventsList').find($('#'+event)).length) {
-			return;
-		}
-
-		if ( typeof add == 'undefined') {
-			//Save the events to the device events array.
-			device.events[event]=event;
-			var json = JSON.stringify(device.events);
-			window.localStorage.setItem('device_' + device.id + '_events', json);
-		}
-		//Create the li an list view for the new event
-		var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
-			"padding" : "0px"
-		}).attr("id", event);
-
-		var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event).css('margin', '0px').appendTo(collapsibleli);
-
-		var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "list").listview();
-		collapsibleli.append(ul).appendTo($('#deviceEventsList')).collapsible({
-			refresh : true
-		});
-		var pHeight = h2.parent().height();
-		h2.height(pHeight);
-
-		//On hold listener for delete
-		var timeoutId = 0;
-
-		collapsibleli.mousedown(function() {
-			timeoutId = setTimeout(function() {
-				console.log("On Mouse hold");
-				clearTimeout(timeoutId);
-				$('#removeEventPopup').popup().css({padding:'20px'});
-				$('#eventID').text(event);
-				$('#removeEventConfirmButton').click(function(){
-					console.log("removing event: "+event);
-					delete device.events[event];
-					console.log(device.events);
-					$('#' + event).remove();
-					var json = JSON.stringify(device.events);
-					window.localStorage.setItem('device_' + device.id + '_events', json);
-					$('#deviceEventsList').listview().listview('refresh');
-					$('#removeEventPopup').popup('close');
-				});
-				$('#removeEventCancelButton').click(function(){
-					$('#removeEventPopup').popup('close');
-				});
-				$('#removeEventPopup').popup('open');
-				
-			}, 500);
-		}).bind('mouseup mouseleave', function() {
-			clearTimeout(timeoutId);
-		});
-
-		ul.listview().listview('refresh');
-		$('#deviceEventsList').listview().listview('refresh');
-        
-		//Add the listener for the event
-		device.addEventListener(event);
-	};
-
 	Device.prototype.callFunction = function(f, v) {
 		var device = this;
 		$.post(this.baseUrl + "/" + f, {
 			arg : v,
 			access_token : device.api.accessToken
 		}).success(function(data) {
-            logEntry(device.data.name, 'function call',f+': '+data.return_value);
-		});
-	};
-	
-	Device.prototype.publishEvent = function(eventName, eventData, eventTTL){
-		//publishEventBaseUrl
-		var device = this;
-		$.post(this.publishEventBaseUrl, {
-			name : eventName,
-			data: eventData,
-			private : 'true',
-			ttl : eventTTL,
-			access_token : device.api.accessToken
-		}).success(function(data) {
 			console.log("Function Return: "+data);
+			logEntry(device.data.name, 'function call', f+': '+data.return_value);
 		});
 	};
 	
-	Device.prototype.addEventListener = function(eventString) {
-		var device = this;
-		var eventSubscribeURL = this.baseUrl + "/events" + device.urlTail;
-		var source = new EventSource(eventSubscribeURL);
-		source.onopen = function() {
-			source.addEventListener(eventString, function(e) {
-				console.log(eventString + " fired");
-				var data = JSON.parse(e.data);
-				$('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-				$('#' + eventString + 'list').listview().listview('refresh');
-			}, false);
-		};
-		source.onerror = function() {
-			console.log("error on Server Event Stream");
-		};
-		$('#deviceEventsList').listview().listview('refresh');
-	};
 	Device.prototype.addButton = function(vals, add) {
 		console.log(vals);
 		var device = this;
@@ -883,9 +1041,6 @@
 	$("form input[type=submit]").live('click', function() {
         $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
         $(this).attr("clicked", "true");
-    });
-    $(document).on('mobileinit', function(){
-        
     });
 })(jQuery);
 function logEntry(d,t,v){
