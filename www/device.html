@@ -15,24 +15,23 @@
         <script type="text/javascript" src="mobicle.js"></script>
         <script type="text/javascript" src="js/cordova.js"></script>
     </head>
-    <body style="padding-top:30px;">
-        <div data-role="page">
-            <div data-role="panel">
-                <ul>
-                    <li>Log</li>
-                </ul>
-            </div>
-    	<div>
-    		<div style="padding:0 8px;height:80px;">
-    			<button class="ui-btn ui-corner-all ui-shadow" id="devicelistbutton" style="display: inline; width: 150px; float:left; margin-right: 8px">
-					Device List
-				</button>
-	    		<button class="ui-btn ui-corner-all ui-shadow" id="logoutbutton" style="display: inline; width: 150px; float:right;">Log Out</button>
-	    	</div>
-    	</div>
-    	
-        <h1 id="deviceName" style="text-align:center;"></h1>
+    <body>
+         
         
+        <div data-role="page">
+            <div data-role="panel" id="menu">
+            <ul>
+                <li><a href="deviceList.html">Device List</a></li>
+                
+                <li>Log</li>
+                <li><a href="#" id="logoutbutton">Log Out</a></li>
+            </ul>
+        </div>
+        <div data-role="header" data-position="fixed">
+                <a href="#menu" data-role="button" data-icon="bars" data-iconpos="notext" class="ui-btn-left"></a>
+                <h1 id="pagetitle"></h1>
+                <a href="" data-role="button" data-icon="refresh" data-iconpos="notext" class="ui-btn-right"></a>
+        </div>
         <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
             <li data-role="list-divider">Functions</li>
         </ul>
