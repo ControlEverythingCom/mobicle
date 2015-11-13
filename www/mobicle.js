@@ -615,7 +615,9 @@
 				console.log(eventString + " fired");
 				var data = JSON.parse(e.data);
 				$('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+				$('#' + eventString + ' h2 a').text(eventString+' - Last Reported Value: '+data.data);
 				$('#' + eventString + 'list').listview().listview('refresh');
+				logEntry('Global', 'event', eventString+': '+data.data);
 			}, false);
 		};
 		source.onerror = function() {
@@ -783,6 +785,7 @@
 		device.updateVaraiablesRequest = $.ajax({timeout : 10000, url : device.baseUrl + "/" + key + device.urlTail}).done(function(data) {
 			// console.log($("li#" + device.id + data.name));
 			$("li#" + device.id + data.name).text(data.name + ": " + data.result);
+			logEntry(device.data.name, 'variable', data.name+': '+data.result);
 			device.updateVaraiablesTimeout = window.setTimeout(function() {
 				device.updateVariable(key);
 			}, 10000);
@@ -820,14 +823,16 @@
 		$('#deviceEventsList').listview().listview('refresh');
 	};
 
-	Device.prototype.callFunction = function(f, v) {
+	Device.prototype.callFunction = function(f, v, el) {
 		var device = this;
 		$.post(this.baseUrl + "/" + f, {
 			arg : v,
 			access_token : device.api.accessToken
 		}).success(function(data) {
-			console.log("Function Return: "+data);
 			logEntry(device.data.name, 'function call', f+': '+data.return_value);
+			if(typeof el !== 'undefined'){
+			    $(el).text($(el).parent().attr('id')+'  -  Last Response: '+data.return_value);
+			}
 		});
 	};
 	
@@ -844,7 +849,7 @@
 			var oldLI = $('#' + id);
 			var newLI = $('<li></li>').attr("id", id);
 			var button = $('<a></a>').text(vals.buttonName).click(function() {
-				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+				device.callFunction(vals.buttonFunctionList, vals.buttonArguments, this);
 				return false;
 			}).appendTo(newLI);
 			var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
@@ -874,7 +879,7 @@
 			}
 			var li = $('<li></li>').attr("id", id);
 			var button = $('<a></a>').text(vals.buttonName).click(function() {
-				device.callFunction(vals.buttonFunctionList, vals.buttonArguments);
+				device.callFunction(vals.buttonFunctionList, vals.buttonArguments, this);
 				return false;
 			}).appendTo(li);
 			var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
@@ -1051,7 +1056,7 @@
     });
 })(jQuery);
 function logEntry(d,t,v){
-    $('#log').append('<li><span class="device-name">'+d+'</span> - <span class="activity-type">'+t+'</span> - <span class="activity-value">'+v+'</span></li>').listview('refresh');
+    $('#log').prepend('<li><span class="device-name" style="display:none;">'+d+'</span><span class="activity-type" style="display:none;">'+t+'</span><span class="activity-value">'+v+'</span></li>').listview('refresh');
 }
 function getUrlParameter(sParam) {
 	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
