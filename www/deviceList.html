@@ -24,5 +24,55 @@
             <li data-role="list-divider">Devices</li>
         </ul>
         <div id="overlay" style="background:white;display:none;opacity:.6;height:100%;width:100%;position:absolute;top:0;left:0;"></div>
+        <br>
+        
+        <ul data-role="listview" id="deviceEventsList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+            <li data-role="list-divider" id="eventListDivider">Events<div id="addEventButton" class="ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative"></div></li>
+        </ul>
+        <br>
+        
+        <ul data-role="listview" id="eventPublishButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+            <li data-role="list-divider">Buttons<a id="addEventPublishButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
+            <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
+        </ul>
+        
+        <div data-role="popup" data-history="false" id="addEventPublishButtonPopup" data-position-to="window" style="padding: 20px">
+            <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Event Publish Button</h1></div>
+            <br>
+            <form id="addEventPublishButtonForm">
+            	
+                <ul data-role="listview" data-inset="true" >
+                	<li><label>Button Name</label><input name="buttonName" type="text" /></li>
+                    <li><label>Event Name</label><input name="eventName" type="text" /></li>
+                    <li><label>Event Data</label><input name="eventData" type="text" /></li>
+                    <li><label>TTL(Seconds)</label><input name="eventTTL" type="number" /></li>
+                    <li><input type="submit" value="submit" /></li>
+                    <li><input type="submit" value="delete" /></li>
+                    <li><input type="submit" value="cancel" /></li>
+                </ul>
+            </form>
+        </div>
+        <div data-role="popup" data-history="false" id="addEventPopup" data-position-to="window">
+        	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Add Event</h1></div>
+        	<br>
+        	<ul data-role="listview" data-inset="true">
+        		<li><label>Event</label><input id="eventIDToAdd" type="text"></input></li>
+        		<li>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="addEventConfirmButton" style="float:left">OK</button>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="addEventCancelButton" style="float:right">Cancel</button>
+        		</li>
+        	</ul>
+        </div>
+        <div data-role="popup" data-history="false" id="removeEventPopup" data-position-to="window">
+        	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Remove Event?</h1></div>
+        	<br>
+        	<ul data-role="listview" data-inset="true">
+        		<li><label id="eventID"></label></li>
+        		<li>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="removeEventConfirmButton" style="float:left">OK</button>
+        			<button class="ui-btn ui-corner-all ui-shadow" id="removeEventCancelButton" style="float:right">Cancel</button>
+        		</li>
+        	</ul>
+        </div>
     </body>
 </html>
