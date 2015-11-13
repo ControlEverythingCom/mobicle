@@ -36,7 +36,7 @@
         </div>
         <div data-role="header" data-position="fixed">
             <a href="#menu" data-role="button" data-icon="bars" data-iconpos="notext" class="ui-btn-left"></a>
-            <h1 id="pagetitle"></h1>
+            <h1 id="pagetitle">Device List</h1>
             <a href="" id="refreshbutton" data-role="button" data-icon="refresh" data-iconpos="notext" class="ui-btn-right"></a>
         </div>
         <div data-role="page">
@@ -48,25 +48,23 @@
                     </li>
                 </ul>
                 <div id="overlay" style="background:white;display:none;opacity:.6;height:100%;width:100%;position:absolute;top:0;left:0;"></div>
-                <br>
-
+               
                 <ul data-role="listview" id="deviceEventsList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider" id="eventListDivider">
                         Events<div id="addEventButton" class="ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative"></div>
                     </li>
                 </ul>
-                <br>
 
                 <ul data-role="listview" id="eventPublishButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
-                        Buttons<a id="addEventPublishButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
+                        Event Publishers<a id="addEventPublishButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
                     </li>
                     <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
                 </ul>
 
                 <div data-role="popup" data-history="false" id="addEventPublishButtonPopup" data-position-to="window" style="padding: 20px">
                     <div data-role="header" class="ui-corner-all">
-                        <h1 role="heading" style="margin: 0">Add Event Publish Button</h1>
+                        <h1 role="heading" style="margin: 0">Add Event Publisher</h1>
                     </div>
                     <br>
                     <form id="addEventPublishButtonForm">
@@ -140,6 +138,13 @@
                         </li>
                     </ul>
                 </div>
+            </div>
+        </div>
+        <div data-role="footer" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="https://www.controleverything.com" style="margin:0;padding:0;"><img style="width:100%;" src="img/CE_Mobicle_Banner.png" /></a></li>
+                </ul>
             </div>
         </div>
     </body>
