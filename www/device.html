@@ -7,7 +7,7 @@
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
 		<link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
-		<link rel="stylesheet" href="js/jquery.mobile/CEv3.min.css">
+		<link rel="stylesheet" href="js/jquery.mobile/CEv4.min.css">
         <link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
         <title>Mobicle</title>
         <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
@@ -43,17 +43,44 @@
             <li data-role="list-divider">Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
             <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
         </ul>
+        <div data-role="popup" data-history="false" id="buttonTypePopup" data-position-to="window" style="padding:20px">
+        	<div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Button Type</h1></div>
+            <br>
+            <ul data-role="listview" data-inset="true" style="padding: 20px">
+            	<button class="ui-btn ui-corner-all ui-shadow" id="functionTypeButton">Call a Function</button>
+            	<br>
+            	<button class="ui-btn ui-corner-all ui-shadow" id="publishEventTypeButton">Publish an Event</button>
+            	<br>
+            	<button class="ui-btn ui-corner-all ui-shadow" id="cancelTypeButton">Cancel</button>
+            </ul>
+        </div>
         <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
             <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Button</h1></div>
             <br>
             <form id="addButtonForm">
             	
-                <ul data-role="listview" data-inset="true">
+                <ul data-role="listview" data-inset="true" >
                     <li><label>Function</label><select id="buttonFunctionList" name="buttonFunctionList">
                         <option value="_none">Select a Function</option>
                     </select></li>
                     <li><label>Name of Button</label><input name="buttonName" type="text" /></li>
                     <li><label>Arguments</label><input name="buttonArguments" type="text" /></li>
+                    <li><input type="submit" value="submit" /></li>
+                    <li><input type="submit" value="delete" /></li>
+                    <li><input type="submit" value="cancel" /></li>
+                </ul>
+            </form>
+        </div>
+        <div data-role="popup" data-history="false" id="addEventPublishButtonPopup" data-position-to="window" style="padding: 20px">
+            <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Event Publish Button</h1></div>
+            <br>
+            <form id="addEventPublishButtonForm">
+            	
+                <ul data-role="listview" data-inset="true" >
+                	<li><label>Button Name</label><input name="buttonName" type="text" /></li>
+                    <li><label>Event Name</label><input name="eventName" type="text" /></li>
+                    <li><label>Event Data</label><input name="eventData" type="text" /></li>
+                    <li><label>TTL(Seconds)</label><input name="eventTTL" type="number" /></li>
                     <li><input type="submit" value="submit" /></li>
                     <li><input type="submit" value="delete" /></li>
                     <li><input type="submit" value="cancel" /></li>
