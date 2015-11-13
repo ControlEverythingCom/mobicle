@@ -312,7 +312,14 @@
 				// $('body').pagecontainer('change', 'deviceList.html');
 			}
 		}
-		
+		$( "[data-role='panel']" ).panel().trigger("create");
+		$( "[data-role='header'], [data-role='footer']" ).toolbar();
+		$('#log').listview({
+            autodividers:true,
+            autodividersSelector:function(elt){
+                return elt.find('.device-name').text()+' - '+elt.find('.activity-type').text();
+            }
+        }).listview('refresh');
 	});
 
 	function Particle(accessToken) {
@@ -613,7 +620,7 @@
 
 		ul.listview().listview('refresh');
 		$('#deviceEventsList').listview().listview('refresh');
-
+        
 		//Add the listener for the event
 		device.addEventListener(event);
 	};
@@ -624,7 +631,7 @@
 			arg : v,
 			access_token : device.api.accessToken
 		}).success(function(data) {
-			console.log("Function Return: "+data);
+            logEntry(device.data.name, 'function call',f+': '+data.return_value);
 		});
 	};
 	
@@ -877,8 +884,13 @@
         $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
         $(this).attr("clicked", "true");
     });
+    $(document).on('mobileinit', function(){
+        
+    });
 })(jQuery);
-
+function logEntry(d,t,v){
+    $('#log').append('<li><span class="device-name">'+d+'</span> - <span class="activity-type">'+t+'</span> - <span class="activity-value">'+v+'</span></li>').listview('refresh');
+}
 function getUrlParameter(sParam) {
 	var sPageURL = decodeURIComponent(window.location.search.substring(1)),
 	    sURLVariables = sPageURL.split('&'),
