@@ -336,7 +336,14 @@
 				// $('body').pagecontainer('change', 'deviceList.html');
 			}
 		}
-		
+		$( "[data-role='panel']" ).panel().trigger("create");
+        $( "[data-role='header'], [data-role='footer']" ).toolbar();
+        $('#log').listview({
+            autodividers:true,
+            autodividersSelector:function(elt){
+                return elt.find('.device-name').text()+' - '+elt.find('.activity-type').text();
+            }
+        }).listview('refresh');
 	});
 
 	function Particle(accessToken) {
