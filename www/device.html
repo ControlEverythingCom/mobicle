@@ -6,8 +6,8 @@
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-		<link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
-		<link rel="stylesheet" href="js/jquery.mobile/CEv4.min.css">
+        <link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.external-png-1.4.5.min.css">
+        <link rel="stylesheet" href="js/jquery.mobile/CEv4.min.css">
         <link rel="stylesheet" href="js/jquery.mobile/jquery.mobile.structure-1.4.5.min.css">
         <title>Mobicle</title>
         <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
@@ -15,65 +15,110 @@
         <script type="text/javascript" src="mobicle.js"></script>
         <script type="text/javascript" src="js/cordova.js"></script>
     </head>
-    <body>
-         
-        
-        <div data-role="page">
-            <div data-role="panel" id="menu">
-            <ul>
-                <li><a href="deviceList.html">Device List</a></li>
-                
-                <li>Log</li>
-                <li><a href="#" id="logoutbutton">Log Out</a></li>
-            </ul>
+    <body class="ui-page-theme-a">
+        <div data-role="panel" data-display="overlay" id="menu">
+            <div style="text-align:right;height:80px;">
+                <a href="#menu" data-role="button" data-icon="bars" data-inline="true" data-iconpos="notext"></a>
+            </div>
+            <div data-role="collapsible-set">
+                <div>
+                    <a data-role="button" href="deviceList.html">Device List</a>
+                </div>
+                <div data-role="collapsible">
+                    <h2>Activity Log</h2>
+                    <ul data-role="listview" data-filter="true" data-autodividers="true" id="log" >
+                    </ul>
+                </div>
+                <div>
+                    <a href="#" data-role="button" id="logoutbutton">Log Out</a>
+                </div>
+            </div>
         </div>
         <div data-role="header" data-position="fixed">
-                <a href="#menu" data-role="button" data-icon="bars" data-iconpos="notext" class="ui-btn-left"></a>
-                <h1 id="pagetitle"></h1>
-                <a href="" data-role="button" data-icon="refresh" data-iconpos="notext" class="ui-btn-right"></a>
+            <a href="#menu" data-role="button" data-icon="bars" data-iconpos="notext" class="ui-btn-left"></a>
+            <h1 id="pagetitle"></h1>
+            <a href="" id="refreshbutton" data-role="button" data-icon="refresh" data-iconpos="notext" class="ui-btn-right"></a>
         </div>
-        <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
-            <li data-role="list-divider">Functions</li>
-        </ul>
-        <br />
-        <ul data-role="listview" id="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
-            <li data-role="list-divider">Variables</li>
-        </ul>
-        <br />
-        
-        <br />
-        <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
-            <li data-role="list-divider">Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a></li>
-            <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
-        </ul>
-        <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
-            <div data-role="header" class="ui-corner-all"><h1 role="heading" style="margin: 0">Add Button</h1></div>
-            <br>
-            <form id="addButtonForm">
-            	
-                <ul data-role="listview" data-inset="true" >
-                    <li><label>Function</label><select id="buttonFunctionList" name="buttonFunctionList">
-                        <option value="_none">Select a Function</option>
-                    </select></li>
-                    <li><label>Name of Button</label><input name="buttonName" type="text" /></li>
-                    <li><label>Arguments</label><input name="buttonArguments" type="text" /></li>
-                    <li><input type="submit" value="submit" /></li>
-                    <li><input type="submit" value="delete" /></li>
-                    <li><input type="submit" value="cancel" /></li>
+        <div data-role="page">
+
+            <div data-role="content">
+
+                <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Functions
+                    </li>
                 </ul>
-            </form>
-        </div>
-        <div data-role="popup" data-history="false" id="callFunctionPopup" data-position-to="window">
-        	<div data-role="header" class = "ui-corner-all"><h1 role="heading" style="margin:0">Add Event</h1></div>
-        	<br>
-        	<ul data-role="listview" data-inset="true">
-        		<li><label>Argument</label><input id="functionArgument" type="text"></input></li>
-        		<li>
-        			<button class="ui-btn ui-corner-all ui-shadow" id="callFunctionConfirm" style="float:left">Send</button>
-        			<button class="ui-btn ui-corner-all ui-shadow" id="callFunctionCancel" style="float:right">Cancel</button>
-        		</li>
-        	</ul>
-        </div>
+                <br />
+                <ul data-role="listview" id="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Variables
+                    </li>
+                </ul>
+                <br />
+
+                <br />
+                <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
+                    </li>
+                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
+                </ul>
+                <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
+                    <div data-role="header" class="ui-corner-all">
+                        <h1 role="heading" style="margin: 0">Add Button</h1>
+                    </div>
+                    <br>
+                    <form id="addButtonForm">
+
+                        <ul data-role="listview" data-inset="true" >
+                            <li>
+                                <label>Function</label>
+                                <select id="buttonFunctionList" name="buttonFunctionList">
+                                    <option value="_none">Select a Function</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>Name of Button</label>
+                                <input name="buttonName" type="text" />
+                            </li>
+                            <li>
+                                <label>Arguments</label>
+                                <input name="buttonArguments" type="text" />
+                            </li>
+                            <li>
+                                <input type="submit" value="submit" />
+                            </li>
+                            <li>
+                                <input type="submit" value="delete" />
+                            </li>
+                            <li>
+                                <input type="submit" value="cancel" />
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+                <div data-role="popup" data-history="false" id="callFunctionPopup" data-position-to="window">
+                    <div data-role="header" class = "ui-corner-all">
+                        <h1 role="heading" style="margin:0">Add Event</h1>
+                    </div>
+                    <br>
+                    <ul data-role="listview" data-inset="true">
+                        <li>
+                            <label>Argument</label>
+                            <input id="functionArgument" type="text">
+                            </input>
+                        </li>
+                        <li>
+                            <button class="ui-btn ui-corner-all ui-shadow" id="callFunctionConfirm" style="float:left">
+                                Send
+                            </button>
+                            <button class="ui-btn ui-corner-all ui-shadow" id="callFunctionCancel" style="float:right">
+                                Cancel
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </body>
 </html>
