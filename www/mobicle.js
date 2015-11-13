@@ -173,12 +173,6 @@
 				select.selectmenu('refresh', true);
 				// console.log(select);
 				//Handle submit button clicks on forms.  Intercepts prior to form submit
-				$("form input[type=submit]").click(function() {
-					$("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
-					$(this).attr("clicked", "true");
-				});
-
-				
 			});
 			$('#addButtonPopup').on('popupafterclose', function() {
 				console.log("addButtonPopup closed");
@@ -404,7 +398,7 @@
 	Device.prototype.update = function() {
 		var device = this;
 		$.ajax({timeout:2000, url:this.baseUrl + this.urlTail}).done(function(data) {
-			$('#deviceName').text(data.name);
+			$('#pagetitle').text(data.name);
 			device.data = null;
 			device.data = data;
 			device.updateFunctions();
@@ -837,6 +831,17 @@
 		});
 		return paramObj;
 	};
+	jQuery.fn.live=function(events, data, callback){
+       if(typeof callback === 'undefined'){
+           callback=data;
+           data={};
+       }
+       jQuery(document).on(events, jQuery(this).selector, data, callback);
+    };
+	$("form input[type=submit]").live('click', function() {
+        $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
+        $(this).attr("clicked", "true");
+    });
 })(jQuery);
 
 function getUrlParameter(sParam) {
