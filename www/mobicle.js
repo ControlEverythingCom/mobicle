@@ -1,88 +1,12 @@
 (function($) {
-
-    $(document).ready(function() {
-
+    var mobileReady=function(){
         console.log("document ready");
         var ParticleAPI = null;
         var accessToken = window.localStorage.getItem('access_token');
 
-        $('body').on('load_page_index', function(a, b) {
-            console.log('index page loaded');
-            if ( typeof accessToken == 'undefined' || accessToken == null) {
-                console.log("accessToken not found");
-                var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
-                form.on("submit", function(e) {
-                    e.preventDefault();
-                    $.post($(this).attr('action'), $(this).serialize(), function(result) {
-                        // console.log(result);
-
-                        if ( typeof result.access_token != 'undefined') {
-                            window.localStorage.setItem('access_token', result.access_token);
-                            //window.location.href = 'deviceList.html';
-                            ParticleAPI = new Particle(result.access_token);
-                            $('body').pagecontainer('change', 'deviceList.html');
-                            window.location.reload(true);
-                        } else {
-                            console.log('bad login');
-                            var invalidLoginDiv = $('<label>Invalid Login</label>');
-                            form.append(invalidLoginDiv);
-                        }
-
-                    }).fail(function() {
-                        console.log('failed login');
-                        var invalidLoginDiv = $('<label style="color: red;">Invalid Login. Please try again.</label>');
-                        form.append(invalidLoginDiv);
-                    });
-                    return false;
-                });
-                form.append('<input type="hidden" name="client_id" value="particle">').append('<input type="hidden" name="client_secret" value="particle">').append('<input type="hidden" name="grant_type" value="password">').append('<label for="username">Particle Account Email:</label>').append('<input type="email" name="username" id="username"></input>').append('<label for="password">Particle Account Password:</label>').append('<input type="password" name="password" id="password"></input>').append('<input type="submit" value="Sign In"></input>');
-
-                var loginHeader = $('<div></div>').css({
-                    'text-align' : 'center'
-                });
-                var particleLogo = $('<img src="img/particle.png" style="width:200px;height:200px;"></img>').appendTo(loginHeader);
-
-                var formWrapper = $('<div id="loginWrapper"></div>').css({
-                    padding : '20px'
-                }).append(loginHeader).append(form);
-                //$('body').pagecontainer('getActivePage').empty();
-                //$.mobile.activePage.append(formWrapper);
-                formWrapper.appendTo($('body').pagecontainer('getActivePage'));
-                //formWrapper.trigger('create');
-
-                form.trigger('create');
-                intCount = 0;
-                formWrapper.popup({
-                    dismissible : false
-                });
-                var formint = window.setInterval(function() {
-                    if (!formWrapper.parent().hasClass('ui-popup-hidden') || intCount > 20) {
-                        window.clearInterval(formint);
-                    } else {
-                        formWrapper.popup('open');
-                        intCount++;
-                    }
-                    console.log('STUPID INTERVALS');
-                }, 500);
-                //formWrapper.popup('open');
-
-            } else {
-                console.log("accessToken found");
-                ParticleAPI = new Particle(accessToken);
-                var page = window.location.pathname.split('/').pop().replace('.html', '');
-                if (window.location.pathname.indexOf('html') < 0 || page === 'index') {
-                    console.log("pathname does not contain html");
-                    $('body').pagecontainer('change', 'deviceList.html');
-                } else {
-                    var event = 'load_page_' + page;
-                    $('body').trigger(event);
-                    console.log(event);
-                    $('body').pagecontainer('change', 'deviceList.html');
-                }
-            }
-        });
-
         $('body').on('load_page_deviceList', function(a, b) {
+            
+        console.log($('body div[data-role="page"]'));
             ParticleAPI.updateDevices();
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
                 ParticleAPI.updateDevices();
@@ -151,12 +75,6 @@
                     $('#addEventPopup').popup('close');
                 });
                 $('#addEventPopup').popup('open');
-
-                // var userInput = prompt("Enter event Argument");
-                // //Check to see if user entered anything
-                // if (userInput) {
-                // device.addEvent(userInput);
-                // }
             });
 
         });
@@ -251,12 +169,15 @@
                 } else {
                     var url = b.absUrl;
                 }
-                var l = document.createElement("a");
-                l.href = url;
-                var page = l.pathname.split('/').pop().replace('.html', '');
-                var event = 'load_page_' + page;
-                console.log(event + ' triggered');
-                $('body').trigger(event, a, b);
+                var page = url.split('/').pop().replace('.html', '');
+                if(page==''){
+                    console.log([a,b]);
+                    page='index';
+                }
+                if(page.length>0){
+                    var event = 'load_page_' + page;
+                    $('body').trigger(event, a, b);
+                }
             }
         });
 
@@ -266,8 +187,6 @@
             form.on("submit", function(e) {
                 e.preventDefault();
                 $.post($(this).attr('action'), $(this).serialize(), function(result) {
-                    // console.log(result);
-
                     if ( typeof result.access_token != 'undefined') {
                         window.localStorage.setItem('access_token', result.access_token);
                         //window.location.href = 'deviceList.html';
@@ -322,14 +241,12 @@
             console.log("accessToken found");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
-            if (window.location.pathname.indexOf('html') < 0 || page === 'index') {
-                console.log("pathname does not contain html");
+            if (page=='' || page === 'index') {
+                console.log('list redirect');
                 $('body').pagecontainer('change', 'deviceList.html');
             } else {
                 var event = 'load_page_' + page;
                 $('body').trigger(event);
-                console.log(event);
-                // $('body').pagecontainer('change', 'deviceList.html');
             }
         }
         $("[data-role='panel']").panel().trigger("create");
@@ -340,8 +257,10 @@
                 return elt.find('.device-name').text() + ' - ' + elt.find('.activity-type').text();
             }
         }).listview('refresh');
+    };
+    $(document).ready(function() {
+        window.setTimeout(mobileReady, 50);
     });
-
     function Particle(accessToken) {
         this.baseUrl = 'https://api.particle.io/v1/';
         this.publishEventBaseUrl = this.baseUrl + 'devices/events';
@@ -363,7 +282,6 @@
         window.localStorage.removeItem('access_token');
         window.location.reload(true);
         $.ready();
-        // $('body').pagecontainer('change', 'index.html');
     };
 
     Particle.prototype.updateDevices = function(list) {
@@ -453,6 +371,7 @@
         }
     };
     Particle.prototype.addEventButton = function(vals, add) {
+        if(typeof vals === "string") return;
         console.log(vals);
         var particle = this;
         var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
@@ -615,6 +534,8 @@
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
+        console.log($('body div[data-role="page"]'));
+        
         var particle = this;
         var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
         var source = new EventSource(eventSubscribeURL);
@@ -686,8 +607,8 @@
         this.events = {};
         this.functions = [];
         currentDevice = this;
-        this.updateVaraiablesTimeout
-        this.updateVaraiablesRequest
+        this.updateVaraiablesTimeout;
+        this.updateVaraiablesRequest;
     }
 
 
@@ -744,8 +665,9 @@
             device.loaded();
             console.log('loaded called');
         }).fail(function() {
-            window.location = window.location;
-            device.update();
+           // window.location = window.location;
+           // device.update();
+           $('body').pagecontainer('change', 'deviceList.html');
         });
     };
 
