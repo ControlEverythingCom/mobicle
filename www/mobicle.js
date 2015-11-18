@@ -631,7 +631,6 @@
             url : this.baseUrl + this.urlTail
         }).done(function(data) {
             $('#pagetitle').text(data.name);
-            device.data = null;
             device.data = data;
             device.updateFunctions();
             device.updateVariables();
