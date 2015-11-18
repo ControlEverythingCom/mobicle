@@ -42,22 +42,21 @@
         <div data-role="page">
 
             <div data-role="content">
-
-                <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+            	<ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
-                        Functions
+                        Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
                     </li>
+                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
                 </ul>
                 <ul data-role="listview" id="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
                         Variables
                     </li>
                 </ul>
-                <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
-                        Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
+                        Functions
                     </li>
-                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
                 </ul>
                 <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
                     <div data-role="header" class="ui-corner-all">
