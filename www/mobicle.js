@@ -257,7 +257,17 @@
         }).listview('refresh');
     };
     $(document).ready(function() {
-        window.setTimeout(mobileReady, 50);
+        window.isphone = false;
+        if(document.URL.indexOf("http://") === -1 
+            && document.URL.indexOf("https://") === -1) {
+            window.isphone = true;
+        }
+    
+        if( window.isphone ) {
+            document.addEventListener("deviceready", mobileReady, false);
+        } else {
+            mobileReady();
+        }
     });
     function Particle(accessToken) {
         this.baseUrl = 'https://api.particle.io/v1/';
