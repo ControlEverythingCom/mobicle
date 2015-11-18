@@ -167,7 +167,7 @@
                 } else {
                     var url = b.absUrl;
                 }
-                var page = url.split('/').pop().replace('.html', '');
+                var page = url.replace(/\?.*/, '').split('/').pop().replace('.html', '');
                 if(page==''){
                     console.log([a,b]);
                     page='index';
@@ -291,7 +291,7 @@
         window.location.reload(true);
         $.ready();
     };
-
+   
     Particle.prototype.updateDevices = function(list) {
         $('#pagetitle').text('Device List');
         var ParticleAPI = this;
@@ -542,8 +542,6 @@
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
-        console.log($('body div[data-role="page"]'));
-        
         var particle = this;
         var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
         var source = new EventSource(eventSubscribeURL);
@@ -636,10 +634,22 @@
     };
     Device.prototype.update = function() {
         var device = this;
+        $('#overlay').css({
+            display : 'block'
+        });
+        $.mobile.loading("show", {
+            text : "loading...",
+            textVisible : true,
+            theme : $.mobile.loader.prototype.options.theme,
+            textonly : false,
+            html : ""
+        });
+
         $.ajax({
             timeout : 2000,
             url : this.baseUrl + this.urlTail
         }).done(function(data) {
+            console.log(data);
             $('#pagetitle').text(data.name);
             device.data = data;
             device.updateFunctions();
@@ -670,11 +680,18 @@
                 // }
             }
             device.loaded();
-            console.log('loaded called');
+            $('#overlay').css({
+                display : 'none'
+            });
+            $.mobile.loading("hide");
         }).fail(function() {
            // window.location = window.location;
            // device.update();
            $('body').pagecontainer('change', 'deviceList.html');
+           $('#overlay').css({
+                display : 'none'
+            });
+            $.mobile.loading("hide");
         });
     };
 
