@@ -87,17 +87,15 @@
                 ParticleAPI.activeRequests.deviceList = false;
                 ParticleAPI.updatingDevices.abort();
             }
-            console.log('load_page_device');
+            
             //Cancel interval for checking Particle device online status
             if (ParticleAPI.intervals.deviceList != false) {
-                console.log("clearing updateDevice interval");
                 window.clearTimeout(ParticleAPI.intervals.deviceList);
                 ParticleAPI.intervals.deviceList = false;
             }
             var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-            console.log(device);
+            
             $('#devicelistbutton').click(function() {
-                console.log("deviceListButton");
                 if ( typeof device.updateVaraiablesRequest !== 'undefined') {
                     device.updateVaraiablesRequest.abort();
                     window.clearTimeout(device.updateVaraiablesTimeout);
@@ -168,10 +166,7 @@
                     var url = b.absUrl;
                 }
                 var page = url.replace(/\?.*/, '').split('/').pop().replace('.html', '');
-                if(page==''){
-                    console.log([a,b]);
-                    page='index';
-                }
+                if(page=='') page='index';
                 if(page.length>0){
                     var event = 'load_page_' + page;
                     $('body').trigger(event, a, b);
@@ -180,7 +175,6 @@
         });
 
         if ( typeof accessToken == 'undefined' || accessToken == null) {
-            console.log("accessToken not found");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
             form.on("submit", function(e) {
                 e.preventDefault();
@@ -236,7 +230,6 @@
             //formWrapper.popup('open');
 
         } else {
-            console.log("accessToken found");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
             if (page=='' || page === 'index') {
