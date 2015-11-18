@@ -259,7 +259,7 @@
         if( window.isphone ) {
             document.addEventListener("deviceready", mobileReady, false);
         } else {
-            mobileReady();
+            window.setTimeout(mobileReady, 50);
         }
     });
     function Particle(accessToken) {
