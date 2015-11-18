@@ -5,8 +5,6 @@
         var accessToken = window.localStorage.getItem('access_token');
 
         $('body').on('load_page_deviceList', function(a, b) {
-            
-        console.log($('body div[data-role="page"]'));
             ParticleAPI.updateDevices();
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
                 ParticleAPI.updateDevices();
@@ -285,6 +283,7 @@
     };
 
     Particle.prototype.updateDevices = function(list) {
+        $('#pagetitle').text('Device List');
         var ParticleAPI = this;
         if (ParticleAPI.activeRequests.deviceList === true)
             return;
@@ -298,7 +297,6 @@
             textonly : false,
             html : ""
         });
-        console.log("updateDevices");
         var devices = null;
         //window.clearTimeout(ParticleAPI.intervals.deviceList);
         ParticleAPI.activeRequests.deviceList = true;
