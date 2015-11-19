@@ -652,6 +652,7 @@
         this.eventButtons = [];
         this.events = {};
         this.functions = [];
+        this.variables = [];
         currentDevice = this;
         this.updateVaraiablesTimeout;
         this.updateVaraiablesRequest;
@@ -765,33 +766,37 @@
     };
 
     Device.prototype.updateVariables = function() {
-        var device = this;
-        $.each(this.data.variables, function(key, value) {
-            //Make sure the variable is not already in the list
-            if (!$('#deviceVariablesList').find($('#' + device.id + key)).length) {
-                $('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+        for(i in this.data.variables){
+            this.variables.push(i);
+            var id=this.id + i;
+            if (!$('#deviceVariablesList').find($('#' + id)).length) {
+                $('<li id="'+id+'"></li>').appendTo($('#deviceVariablesList'));
             }
-            device.updateVariable(key);
-        });
+        }
+        
+        this.updateVariable(0);
+        
         $('#deviceVariablesList').listview().listview('refresh');
 
     };
-    Device.prototype.updateVariable = function(key) {
+    Device.prototype.updateVariable = function(i, to) {
         var device = this;
+        var timeout = ($('#deviceVariablesList').find($('#' + device.id + device.variables[i])).text()=='')?10:3000;
+        
         device.updateVaraiablesRequest = $.ajax({
-            timeout : 10000,
-            url : device.baseUrl + "/" + key + device.urlTail
+            timeout : 3000,
+            url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
-            // console.log($("li#" + device.id + data.name));
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
             logEntry(device.data.name, 'variable', data.name + ': ' + data.result);
             device.updateVaraiablesTimeout = window.setTimeout(function() {
-                device.updateVariable(key);
-            }, 10000);
+                var newI=(device.variables.length-1)==i?0:i+1;
+                device.updateVariable(newI);
+            }, timeout);
         }).fail(function() {
             device.updateVaraiablesTimeout = window.setTimeout(function() {
-                device.updateVariable(key);
-            }, 10000);
+                device.updateVariable(i);
+            }, timeout);
         });
 
     };
