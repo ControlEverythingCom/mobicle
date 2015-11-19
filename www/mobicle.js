@@ -269,6 +269,7 @@
         this.eventMonitor = [];
         this.eventPublish = [];
         this.events = {};
+        this.eventSource = false;
         this.intervals = {
             deviceList : false
         };
@@ -331,7 +332,11 @@
                     if (!li.children('a').length) {
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
-                        // hrefLink.text(device.name);
+                        hrefLink.click(function(){
+                        	ParticleAPI.eventSource.close();
+                        	ParticleAPI.eventSource = false;
+                        });
+                        hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
                     }
                 }
@@ -367,10 +372,14 @@
         if (eventMonitors) {
             particle.eventMonitor = $.parseJSON(eventMonitors);
             for (var i = 0; i < particle.eventMonitor.length; i++) {
+            	console.log("adding monitor for: "+particle.eventMonitor[i]);
                 particle.addEventMonitor(particle.eventMonitor[i], false);
             }
-        }
+
+		}
+
     };
+    
     Particle.prototype.addEventButton = function(vals, add) {
         if(typeof vals === "string") return;
         console.log(vals);
@@ -425,7 +434,6 @@
                 $('#addEventPublishButtonPopup').popup();
                 //Handle form submit
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-
                     var val = $("input[type=submit][clicked=true]").val();
                     switch(val) {
                     case "submit":
@@ -462,12 +470,14 @@
             li.parent().listview().listview('refresh');
         }
     };
+    
     Particle.prototype.addEventMonitor = function(event, add) {
         console.log('addEventMonitor');
         console.log(add);
         var p = this;
         //Check to see if the event already exists.  If so return
         if ($('#deviceEventsList').find($('#' + event)).length) {
+        	p.addEventListener(event);
             return;
         }
 
@@ -531,26 +541,54 @@
         p.addEventListener(event);
     };
 
+	Particle.prototype.initializeEvents = function(){
+		console.log(this.events);
+		for(i in this.eventMonitor){
+			var eventString=this.eventMonitor[i];
+			console.log(eventString+' listener added');
+			this.eventSource.addEventListener(eventString, function(e) {
+				var eventString=e.type;
+	            console.log(eventString + " fired");
+	            var data = JSON.parse(e.data);
+	            $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+	            $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+	            $('#' + eventString + 'list').listview().listview('refresh');
+	            logEntry('Global', 'event', eventString + ': ' + data.data);
+	        }, false);
+       }
+	};
+
     Particle.prototype.addEventListener = function(eventString) {
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
         var particle = this;
-        var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
-        var source = new EventSource(eventSubscribeURL);
-        source.onopen = function() {
-            source.addEventListener(eventString, function(e) {
-                console.log(eventString + " fired");
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
-            }, false);
-        };
-        source.onerror = function() {
-            console.log("error on Server Event Stream");
-        };
+        
+        //create event source object if it does not exist already
+        if(!particle.eventSource){
+        	console.log('creating source - '+eventString);
+        	var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
+        	particle.eventSource = new EventSource(eventSubscribeURL); 	
+        	particle.eventSource.onopen = function(){
+        		particle.initializeEvents();
+        	};
+	        particle.eventSource.onerror = function() {
+	            console.log("error on Server Event Stream");
+	        };
+        }else if(particle.eventSource.readyState == 1){
+        	console.log(eventString+' listener added');
+        	particle.eventSource.addEventListener(eventString, function(e) {
+        		var eventString=e.type;
+	            console.log(eventString + " fired");
+	            var data = JSON.parse(e.data);
+	            $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+	            $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+	            $('#' + eventString + 'list').listview().listview('refresh');
+	            logEntry('Global', 'event', eventString + ': ' + data.data);
+	        }, false);
+        }
+
+        
         $('#deviceEventsList').listview().listview('refresh');
     };
 
@@ -625,6 +663,7 @@
                 this._loaded.push(f);
         }
     };
+    
     Device.prototype.update = function() {
         var device = this;
         $('#overlay').css({
@@ -726,11 +765,7 @@
             device.updateVariable(key);
         });
         $('#deviceVariablesList').listview().listview('refresh');
-        /*if($('#deviceVariablesList li:not[data-role=list-divider]').length==0){
-         window.setTimeout(function(){
-         device.updateVariables();
-         }, 10000);
-         }*/
+
     };
     Device.prototype.updateVariable = function(key) {
         var device = this;
