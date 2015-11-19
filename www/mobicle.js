@@ -3,7 +3,7 @@
         console.log("document ready");
         var ParticleAPI = null;
         var accessToken = window.localStorage.getItem('access_token');
-        $('body').on('load_page_deviceList', function(a, b) {
+        $('body').on('load_page_about', function(a, b) {
             $('#pagetitle').text('About Mobicle');
         });
         $('body').on('load_page_deviceList', function(a, b) {
