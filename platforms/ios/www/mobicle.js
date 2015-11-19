@@ -3,7 +3,9 @@
         console.log("document ready");
         var ParticleAPI = null;
         var accessToken = window.localStorage.getItem('access_token');
-
+        $('body').on('load_page_about', function(a, b) {
+            $('#pagetitle').text('About Mobicle');
+        });
         $('body').on('load_page_deviceList', function(a, b) {
             ParticleAPI.updateDevices();
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
@@ -87,17 +89,15 @@
                 ParticleAPI.activeRequests.deviceList = false;
                 ParticleAPI.updatingDevices.abort();
             }
-            console.log('load_page_device');
+            
             //Cancel interval for checking Particle device online status
             if (ParticleAPI.intervals.deviceList != false) {
-                console.log("clearing updateDevice interval");
                 window.clearTimeout(ParticleAPI.intervals.deviceList);
                 ParticleAPI.intervals.deviceList = false;
             }
             var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-            console.log(device);
+            
             $('#devicelistbutton').click(function() {
-                console.log("deviceListButton");
                 if ( typeof device.updateVaraiablesRequest !== 'undefined') {
                     device.updateVaraiablesRequest.abort();
                     window.clearTimeout(device.updateVaraiablesTimeout);
@@ -167,11 +167,8 @@
                 } else {
                     var url = b.absUrl;
                 }
-                var page = url.split('/').pop().replace('.html', '');
-                if(page==''){
-                    console.log([a,b]);
-                    page='index';
-                }
+                var page = url.replace(/\?.*/, '').split('/').pop().replace('.html', '');
+                if(page=='') page='index';
                 if(page.length>0){
                     var event = 'load_page_' + page;
                     $('body').trigger(event, a, b);
@@ -180,7 +177,6 @@
         });
 
         if ( typeof accessToken == 'undefined' || accessToken == null) {
-            console.log("accessToken not found");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
             form.on("submit", function(e) {
                 e.preventDefault();
@@ -236,7 +232,6 @@
             //formWrapper.popup('open');
 
         } else {
-            console.log("accessToken found");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
             if (page=='' || page === 'index') {
@@ -266,7 +261,8 @@
         if( window.isphone ) {
             document.addEventListener("deviceready", mobileReady, false);
         } else {
-            mobileReady();
+            window.setTimeout(mobileReady, 50);
+             
         }
     });
     function Particle(accessToken) {
@@ -276,6 +272,7 @@
         this.eventMonitor = [];
         this.eventPublish = [];
         this.events = {};
+        this.eventSource = false;
         this.intervals = {
             deviceList : false
         };
@@ -291,7 +288,7 @@
         window.location.reload(true);
         $.ready();
     };
-
+   
     Particle.prototype.updateDevices = function(list) {
         $('#pagetitle').text('Device List');
         var ParticleAPI = this;
@@ -338,7 +335,11 @@
                     if (!li.children('a').length) {
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
-                        // hrefLink.text(device.name);
+                        hrefLink.click(function(){
+                        	ParticleAPI.eventSource.close();
+                        	ParticleAPI.eventSource = false;
+                        });
+                        hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
                     }
                 }
@@ -374,10 +375,14 @@
         if (eventMonitors) {
             particle.eventMonitor = $.parseJSON(eventMonitors);
             for (var i = 0; i < particle.eventMonitor.length; i++) {
+            	console.log("adding monitor for: "+particle.eventMonitor[i]);
                 particle.addEventMonitor(particle.eventMonitor[i], false);
             }
-        }
+
+		}
+
     };
+    
     Particle.prototype.addEventButton = function(vals, add) {
         if(typeof vals === "string") return;
         console.log(vals);
@@ -432,7 +437,6 @@
                 $('#addEventPublishButtonPopup').popup();
                 //Handle form submit
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-
                     var val = $("input[type=submit][clicked=true]").val();
                     switch(val) {
                     case "submit":
@@ -469,12 +473,14 @@
             li.parent().listview().listview('refresh');
         }
     };
+    
     Particle.prototype.addEventMonitor = function(event, add) {
         console.log('addEventMonitor');
         console.log(add);
         var p = this;
         //Check to see if the event already exists.  If so return
         if ($('#deviceEventsList').find($('#' + event)).length) {
+        	p.addEventListener(event);
             return;
         }
 
@@ -538,28 +544,54 @@
         p.addEventListener(event);
     };
 
+	Particle.prototype.initializeEvents = function(){
+		console.log(this.events);
+		for(i in this.eventMonitor){
+			var eventString=this.eventMonitor[i];
+			console.log(eventString+' listener added');
+			this.eventSource.addEventListener(eventString, function(e) {
+				var eventString=e.type;
+	            console.log(eventString + " fired");
+	            var data = JSON.parse(e.data);
+	            $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+	            $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+	            $('#' + eventString + 'list').listview().listview('refresh');
+	            logEntry('Global', 'event', eventString + ': ' + data.data);
+	        }, false);
+       }
+	};
+
     Particle.prototype.addEventListener = function(eventString) {
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
-        console.log($('body div[data-role="page"]'));
-        
         var particle = this;
-        var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
-        var source = new EventSource(eventSubscribeURL);
-        source.onopen = function() {
-            source.addEventListener(eventString, function(e) {
-                console.log(eventString + " fired");
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
-            }, false);
-        };
-        source.onerror = function() {
-            console.log("error on Server Event Stream");
-        };
+        
+        //create event source object if it does not exist already
+        if(!particle.eventSource){
+        	console.log('creating source - '+eventString);
+        	var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
+        	particle.eventSource = new EventSource(eventSubscribeURL); 	
+        	particle.eventSource.onopen = function(){
+        		particle.initializeEvents();
+        	};
+	        particle.eventSource.onerror = function() {
+	            console.log("error on Server Event Stream");
+	        };
+        }else if(particle.eventSource.readyState == 1){
+        	console.log(eventString+' listener added');
+        	particle.eventSource.addEventListener(eventString, function(e) {
+        		var eventString=e.type;
+	            console.log(eventString + " fired");
+	            var data = JSON.parse(e.data);
+	            $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
+	            $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+	            $('#' + eventString + 'list').listview().listview('refresh');
+	            logEntry('Global', 'event', eventString + ': ' + data.data);
+	        }, false);
+        }
+
+        
         $('#deviceEventsList').listview().listview('refresh');
     };
 
@@ -614,6 +646,7 @@
         this.eventButtons = [];
         this.events = {};
         this.functions = [];
+        this.variables = [];
         currentDevice = this;
         this.updateVaraiablesTimeout;
         this.updateVaraiablesRequest;
@@ -634,12 +667,25 @@
                 this._loaded.push(f);
         }
     };
+    
     Device.prototype.update = function() {
         var device = this;
+        $('#overlay').css({
+            display : 'block'
+        });
+        $.mobile.loading("show", {
+            text : "loading...",
+            textVisible : true,
+            theme : $.mobile.loader.prototype.options.theme,
+            textonly : false,
+            html : ""
+        });
+
         $.ajax({
             timeout : 2000,
             url : this.baseUrl + this.urlTail
         }).done(function(data) {
+            console.log(data);
             $('#pagetitle').text(data.name);
             device.data = data;
             device.updateFunctions();
@@ -670,11 +716,18 @@
                 // }
             }
             device.loaded();
-            console.log('loaded called');
+            $('#overlay').css({
+                display : 'none'
+            });
+            $.mobile.loading("hide");
         }).fail(function() {
            // window.location = window.location;
            // device.update();
            $('body').pagecontainer('change', 'deviceList.html');
+           $('#overlay').css({
+                display : 'none'
+            });
+            $.mobile.loading("hide");
         });
     };
 
@@ -707,37 +760,37 @@
     };
 
     Device.prototype.updateVariables = function() {
-        var device = this;
-        $.each(this.data.variables, function(key, value) {
-            //Make sure the variable is not already in the list
-            if (!$('#deviceVariablesList').find($('#' + device.id + key)).length) {
-                $('<li></li>').appendTo($('#deviceVariablesList')).attr("id", device.id + key);
+        for(i in this.data.variables){
+            this.variables.push(i);
+            var id=this.id + i;
+            if (!$('#deviceVariablesList').find($('#' + id)).length) {
+                $('<li id="'+id+'"></li>').appendTo($('#deviceVariablesList'));
             }
-            device.updateVariable(key);
-        });
+        }
+        
+        this.updateVariable(0);
+        
         $('#deviceVariablesList').listview().listview('refresh');
-        /*if($('#deviceVariablesList li:not[data-role=list-divider]').length==0){
-         window.setTimeout(function(){
-         device.updateVariables();
-         }, 10000);
-         }*/
+
     };
-    Device.prototype.updateVariable = function(key) {
+    Device.prototype.updateVariable = function(i, to) {
         var device = this;
+        var timeout = ($('#deviceVariablesList').find($('#' + device.id + device.variables[i])).text()=='')?10:3000;
+        
         device.updateVaraiablesRequest = $.ajax({
-            timeout : 10000,
-            url : device.baseUrl + "/" + key + device.urlTail
+            timeout : 3000,
+            url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
-            // console.log($("li#" + device.id + data.name));
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
             logEntry(device.data.name, 'variable', data.name + ': ' + data.result);
             device.updateVaraiablesTimeout = window.setTimeout(function() {
-                device.updateVariable(key);
-            }, 10000);
+                var newI=(device.variables.length-1)==i?0:i+1;
+                device.updateVariable(newI);
+            }, timeout);
         }).fail(function() {
             device.updateVaraiablesTimeout = window.setTimeout(function() {
-                device.updateVariable(key);
-            }, 10000);
+                device.updateVariable(i);
+            }, timeout);
         });
 
     };

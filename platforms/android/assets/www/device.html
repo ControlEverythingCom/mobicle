@@ -32,6 +32,9 @@
                 <div>
                     <a href="#" data-role="button" id="logoutbutton">Log Out</a>
                 </div>
+                <div>
+                    <a data-role="button" href="about.html">About Mobicle</a>
+                </div>
             </div>
         </div>
         <div data-role="header" data-position="fixed">
@@ -42,22 +45,21 @@
         <div data-role="page">
 
             <div data-role="content">
-
-                <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+            	<ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
-                        Functions
+                        Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
                     </li>
+                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
                 </ul>
                 <ul data-role="listview" id="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
                         Variables
                     </li>
                 </ul>
-                <ul data-role="listview" id="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                <ul data-role="listview" id="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
-                        Buttons<a id="addButtonButton" data-rel="popup" class="ui-btn-icon-notext ui-icon-plus" style="float:right; position:relative"></a>
+                        Functions
                     </li>
-                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
                 </ul>
                 <div data-role="popup" data-history="false" id="addButtonPopup" data-position-to="window" style="padding: 20px">
                     <div data-role="header" class="ui-corner-all">
@@ -116,13 +118,12 @@
                 </div>
             </div>
         </div>
-        <div data-role="footer" data-position="fixed">
+        <div data-role="footer" data-position="fixed" data-tap-toggle="false">
             <div data-role="navbar">
                 <ul>
                     <li><a href="https://www.controleverything.com" style="margin:0;padding:0;"><img style="width:100%;" src="img/CE_Mobicle_Banner.png" /></a></li>
                 </ul>
-                <div class="beta-notice">Thank you for helping us test the Beta version of Mobicle! Help us with development by using the issue queue on our <a href="https://github.com/ControlEverythingCom/mobicle/issues">github repo</a></div>
-                
+                <div><a style="width:100%" target="_blank" href="https://github.com/ControlEverythingCom/mobicle/issues">Beta Version - Post issues on our github repo</a></div>
             </div>
         </div>
     </body>
