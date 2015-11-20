@@ -254,6 +254,7 @@
         }).listview('refresh');
     };
     $(document).ready(function() {
+        if(typeof window.isphone !== 'undefined') return;
         window.isphone = false;
         if(document.URL.indexOf("http://") === -1 
             && document.URL.indexOf("https://") === -1) {
