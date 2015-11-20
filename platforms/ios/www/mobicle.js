@@ -177,6 +177,7 @@
         });
 
         if ( typeof accessToken == 'undefined' || accessToken == null) {
+        	console.log("could not find access token");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
             form.on("submit", function(e) {
                 e.preventDefault();
@@ -232,6 +233,7 @@
             //formWrapper.popup('open');
 
         } else {
+        	console.log("found access token");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
             if (page=='' || page === 'index') {
@@ -252,14 +254,16 @@
         }).listview('refresh');
     };
     $(document).ready(function() {
+        if(typeof window.isphone !== 'undefined') return;
         window.isphone = false;
         if(document.URL.indexOf("http://") === -1 
             && document.URL.indexOf("https://") === -1) {
+            	console.log("Its A Phone!!!");
             window.isphone = true;
         }
     
         if( window.isphone ) {
-            document.addEventListener("deviceready", mobileReady, false);
+            document.addEventListener("deviceReady", mobileReady, false);
         } else {
             window.setTimeout(mobileReady, 50);
              
@@ -1071,7 +1075,6 @@ function getUrlParameter(sParam) {
         }
     }
 };
-
 /*
  {"prevPage":{"0":{},"length":1},
  "toPage":{"0":{"jQuery111307613389508333057":238},"length":1},

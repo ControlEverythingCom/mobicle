@@ -254,16 +254,18 @@
         }).listview('refresh');
     };
     $(document).ready(function() {
+        if(typeof window.isphone !== 'undefined') return;
         window.isphone = false;
         if(document.URL.indexOf("http://") === -1 
             && document.URL.indexOf("https://") === -1) {
-            	console.log("Its A Phone!!!")
+            	console.log("Its A Phone!!!");
             window.isphone = true;
         }
     
         if( window.isphone ) {
-            document.addEventListener("deviceready", mobileReady, false);
+            document.addEventListener("deviceReady", mobileReady, false);
         } else {
+        	console.log("setTimeout mobileReady for 50mS");
             window.setTimeout(mobileReady, 50);
              
         }
@@ -1074,7 +1076,6 @@ function getUrlParameter(sParam) {
         }
     }
 };
-
 /*
  {"prevPage":{"0":{},"length":1},
  "toPage":{"0":{"jQuery111307613389508333057":238},"length":1},
