@@ -640,6 +640,7 @@
 
     Device.prototype.update = function() {
         var device = this;
+        this.stop=false;
         $('#overlay').css({
             display : 'block'
         });
