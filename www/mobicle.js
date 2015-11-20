@@ -78,6 +78,8 @@
                 $('.addButtonButton', device.page).click(function() {
                     //Handle form submit
                     console.log('add submit handler');
+                    // $('[name=buttonFunctionList] option').eq(1).prop('selected', true);
+                    $('[name="buttonFunctionList"]', device.page).val($('[name="buttonFunctionList"] option', device.page).eq(1).val()).selectmenu("refresh");
                     $('.addButtonPopup', device.page).removeClass('ui-popup-hidden').popup('open');
                     console.log("popup called");
                     console.log($('#addButtonPopup'));
