@@ -259,7 +259,7 @@
         var retVal = true;
         if (!isset(this.eventListeners[e]))
             this.eventListeners[e] = [];
-        for (i in arguments)
+        for (var i in arguments)
         if (i !== 0)
             args.push(arguments[i]);
         $.each(this.eventListeners[e], function(f) {
@@ -322,8 +322,10 @@
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
                         hrefLink.click(function() {
-                            ParticleAPI.eventSource.close();
-                            ParticleAPI.eventSource = false;
+                            if(ParticleAPI.eventSource){
+                                ParticleAPI.eventSource.close();
+                                ParticleAPI.eventSource = false;
+                            }
                         });
                         hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
@@ -353,12 +355,15 @@
     };
 
     Particle.prototype.initStorage = function(prop, store, method) {
+        var tmp=this[prop];
         if (this[prop] = window.localStorage.getItem(store)) {
             this[prop] = $.grep($.parseJSON(this[prop]), function(v) {
                 return v !== false;
             });
-            for (i in this[prop])this[method](i, false);
+            for(var i in this[prop]) this[method](i, false);
             this.trigger(prop + '_loaded', this[prop]);
+        }else{
+            this[prop]=tmp;
         }
     };
 
@@ -372,8 +377,8 @@
                 return;
         } else if ( typeof i === 'undefined') {
             i = this.eventPublish.length;
-            this.eventMonitor.push(vals);
-            var json = JSON.stringify(this.eventMonitor);
+            this.eventPublish.push(vals);
+            var json = JSON.stringify(this.eventPublish);
             window.localStorage.setItem('event_publish_buttons', json);
         }
 
@@ -385,9 +390,9 @@
 
             li.find('a.publisher').text(vals.buttonName).attr('data-eventName', vals.eventName).attr('data-eventData', vals.eventData).attr('data-eventTTL', vals.eventTTL);
 
-            this.eventMonitor[i] = vals;
+            this.eventPublish[i] = vals;
 
-            var json = JSON.stringify(this.eventMonitor);
+            var json = JSON.stringify(this.eventPublish);
 
             window.localStorage.setItem('event_publish_buttons', json);
 
@@ -424,7 +429,12 @@
     };
 
     Particle.prototype.addEventMonitor = function(i, add) {
-        var event = this.eventMonitor[i];
+        console.log(this);
+        if(typeof(i) !== 'string') var event = this.eventMonitor[i];
+        else{
+            var event=i;
+            i=this.eventMonitor.length;
+        }
         console.log('addEventMonitor');
         console.log(add);
         var p = this;
@@ -496,7 +506,7 @@
 
     Particle.prototype.initializeEvents = function() {
         console.log(this.events);
-        for (i in this.eventMonitor) {
+        for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
             console.log(eventString + ' listener added');
             this.eventSource.addEventListener(eventString, function(e) {
@@ -697,7 +707,7 @@
 
     Device.prototype.updateVariables = function() {
         var device = this;
-        for (i in this.data.variables) {
+        for(var i in this.data.variables) {
             this.variables.push(i);
             var id = this.id + i;
             if (!$('.deviceVariablesList', device.page).find($('#' + id)).length) {
