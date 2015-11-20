@@ -726,7 +726,7 @@
     };
     Device.prototype.updateVariable = function(i, to) {
         var device = this;
-        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).text() == '') ? 10 : 3000;
+        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).length<1) ? 10 : 3000;
 
         device.updateVaraiablesRequest = $.ajax({
             timeout : 3000,
