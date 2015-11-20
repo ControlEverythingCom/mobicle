@@ -177,6 +177,7 @@
         });
 
         if ( typeof accessToken == 'undefined' || accessToken == null) {
+        	console.log("could not find access token");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
             form.on("submit", function(e) {
                 e.preventDefault();
@@ -232,6 +233,7 @@
             //formWrapper.popup('open');
 
         } else {
+        	console.log("found access token");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
             if (page=='' || page === 'index') {
@@ -252,14 +254,16 @@
         }).listview('refresh');
     };
     $(document).ready(function() {
+        if(typeof window.isphone !== 'undefined') return;
         window.isphone = false;
         if(document.URL.indexOf("http://") === -1 
             && document.URL.indexOf("https://") === -1) {
+            	console.log("Its A Phone!!!");
             window.isphone = true;
         }
     
         if( window.isphone ) {
-            document.addEventListener("deviceready", mobileReady, false);
+            document.addEventListener("deviceReady", mobileReady, false);
         } else {
             window.setTimeout(mobileReady, 50);
              
@@ -279,9 +283,28 @@
         this.activeRequests = {
             deviceList : false
         };
+        this.eventListeners = {};
     }
 
-
+    Particle.prototype.on = function(e, c){
+        if(!isset(this.eventListeners[e])) this.eventListeners[e]=[];
+        this.eventListeners[e].push(c);  
+    };
+    Particle.prototype.off = function(e, c){
+        if(!isset(this.eventListeners[e])) this.eventListeners[e]=[];
+        this.eventListeners[e] = $.grep(this.eventListeners[e], function(v){return (v!==c);});
+    };
+    Particle.prototype.trigger = function(){
+        var args=[];
+        var e=arguments[0];
+        var retVal=true;
+        if(!isset(this.eventListeners[e])) this.eventListeners[e]=[];
+        for(i in arguments) if(i!==0) args.push(arguments[i]);
+        $.each(this.eventListeners[e], function(f){
+            if(f.apply(this, args)===false) retVal=false;
+        });
+        return retVal;
+    };
     Particle.prototype.logOut = function() {
         console.log("Logging out");
         window.localStorage.removeItem('access_token');
@@ -361,120 +384,82 @@
     };
 
     Particle.prototype.updateEvents = function() {
-        var particle = this;
-        var eventButtons = window.localStorage.getItem('event_publish_buttons');
-        var eventMonitors = window.localStorage.getItem('event_monitors');
-
-        if (eventButtons) {
-            particle.eventPublish = $.parseJSON(eventButtons);
-            for (var i = 0; i < particle.eventPublish.length; i++) {
-                particle.addEventButton(particle.eventPublish[i], false);
-            }
-        }
-
-        if (eventMonitors) {
-            particle.eventMonitor = $.parseJSON(eventMonitors);
-            for (var i = 0; i < particle.eventMonitor.length; i++) {
-            	console.log("adding monitor for: "+particle.eventMonitor[i]);
-                particle.addEventMonitor(particle.eventMonitor[i], false);
-            }
-
-		}
-
+        $('#addEventPublishButtonPopup').popup();
+        this.initStorage('eventPublish', 'event_publish_buttons', 'addEventButton');
+        this.initStorage('eventMonitor', 'event_monitors', 'addEventMonitor');
     };
     
-    Particle.prototype.addEventButton = function(vals, add) {
-        if(typeof vals === "string") return;
-        console.log(vals);
-        var particle = this;
-        var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
-
-        //Check to see if parent list view has child with this id already.  If so we are editing
-        if ($('#eventPublishButtonList').find($('#' + id)).length) {
-            //We are editing.
-            console.log("editing button");
-            //Get instance of old LI so we can replace with the new one
-            var oldLI = $('#' + id);
-            var newLI = $('<li></li>').attr("id", id);
-            var button = $('<a></a>').text(vals.buttonName).click(function() {
-                particle.publishEvent(vals.eventName, vals.eventData, vals.eventTTL);
-                return false;
-            }).appendTo(newLI);
-            var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
-                "width" : "3.5em"
-            }).appendTo(newLI);
-            //Edit Button click handler
-            edit.click(function() {
-                var buttonIndex = newLI.index();
-                var b = particle.eventPublish[buttonIndex - 1];
-                $.each(b, function(name, value) {
-                    $('[name=' + name + ']').val(value);
-                });
-                $('#addEventPublishButtonPopup').popup('open');
-            });
-            var index = oldLI.index() - 1;
-            oldLI.replaceWith(newLI);
-
-            this.eventMonitor.splice(index, 1, vals);
+    Particle.prototype.initStorage = function(prop, store, method) {
+        if (this[prop]  = window.localStorage.getItem(store)) {
+            this[prop]=$.grep($.parseJSON(this[prop]), function(v){return v!==false; });
+            for(i in this[prop]) this[method](i, false);
+            this.trigger(prop+'_loaded', this[prop]);
+        }
+    };
+    
+    Particle.prototype.addEventButton = function(vals, i) {
+        var particle=this;
+        if(typeof vals !== "object"){
+            if(isset(particle.eventPublish[vals])){
+                i=vals;
+                vals=particle.eventPublish[vals];
+            }
+            else return;
+        }else if(typeof i === 'undefined'){
+            i=this.eventPublish.length;
+            this.eventMonitor.push(vals);
             var json = JSON.stringify(this.eventMonitor);
             window.localStorage.setItem('event_publish_buttons', json);
-            newLI.parent().listview().listview('refresh');
+        }
+        
+        //Check to see if parent list view has child with this id already.  If so we are editing
+        var li=$('#eventPublishButtonList li[data-button-index="'+i+'"]');
+        if (li.length) {
+            //We are editing.
+            console.log("editing button");
+            
+            li.find('a.publisher').text(vals.buttonName).attr('data-eventName', vals.eventName).attr('data-eventData', vals.eventData).attr('data-eventTTL', vals.eventTTL);
+            
+            this.eventMonitor[i]=vals;
+            
+            var json = JSON.stringify(this.eventMonitor);
+            
+            window.localStorage.setItem('event_publish_buttons', json);
+            
         } else {
-            if ( typeof add === 'undefined') {
-                this.eventMonitor.push(vals);
-                var json = JSON.stringify(this.eventMonitor);
-                window.localStorage.setItem('event_publish_buttons', json);
-            }
-            var li = $('<li></li>').attr("id", id);
-            var button = $('<a></a>').text(vals.buttonName).click(function() {
-                particle.publishEvent(vals.eventName, vals.eventData, vals.eventTTL);
+            var li = $('<li></li>').attr("data-button-index", i);
+            var button = $('<a></a>').text(vals.buttonName).attr('data-eventName', vals.eventName).attr('data-eventData', vals.eventData).attr('data-eventTTL', vals.eventTTL).click(function() {
+                particle.publishEvent($(this).attr('data-eventName'), $(this).attr('data-eventData'), $(this).attr('eventTTL'));
                 return false;
-            }).appendTo(li);
-            var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li);
-            li.appendTo('#eventPublishButtonList');
-            //Edit Button click handler
-            edit.click(function() {
-                $('#addEventPublishButtonPopup').popup();
-                //Handle form submit
+            }).appendTo(li).addClass('publisher');
+            var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(li).addClass('edit').click(function() {
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-                    var val = $("input[type=submit][clicked=true]").val();
-                    switch(val) {
+                    var op = $("input[type=submit][clicked=true]").val();
+                    switch(op) {
                     case "submit":
-                        console.log("form submit");
-                        var vals = $(this).getValues();
-                        device.addEventButton(vals);
-                        console.log(vals);
-                        $('#addEventPublishButtonPopup').popup('close');
-                        return false;
+                        particle.addEventButton($(this).getValues(), i);
                         break;
                     case "delete":
-                        console.log("form delete");
-                        var vals = $(this).getValues();
-                        // device.deleteButton(vals);
-                        $('#addEventPublishButtonPopup').popup('close');
-                        return false;
-                        break;
-                    case "cancel":
-                        console.log("form cancel");
-                        $('#addEventPublishButtonPopup').popup('close');
-                        return false;
+                        li.remove();
+                        particle.eventPublish[i]=false;
                         break;
                     }
-
+                    $('#addEventPublishButtonPopup').popup('close');
+                    return false;
                 });
-                var buttonIndex = li.index();
-                var b = device.buttons[buttonIndex - 1];
-                $.each(b, function(name, value) {
-                    $('[name=' + name + ']').val(value);
+                $.each(vals, function(n, v) {
+                    $('#addEventPublishButtonForm [name=' + n + ']').val(v);
 
                 });
                 $('#addEventPublishButtonPopup').popup('open');
             });
+            $('#eventPublishButtonList').append(li);
             li.parent().listview().listview('refresh');
         }
     };
     
-    Particle.prototype.addEventMonitor = function(event, add) {
+    Particle.prototype.addEventMonitor = function(i, add) {
+        var event=this.eventMonitor[i];
         console.log('addEventMonitor');
         console.log(add);
         var p = this;
@@ -1056,7 +1041,9 @@
 function logEntry(d, t, v) {
     $('#log').prepend('<li><span class="device-name" style="display:none;">' + d + '</span><span class="activity-type" style="display:none;">' + t + '</span><span class="activity-value">' + v + '</span></li>').listview('refresh');
 }
-
+function isset(v){
+    return (typeof v !== 'undefined');
+}
 function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
         sURLVariables = sPageURL.split('&'),
@@ -1071,7 +1058,6 @@ function getUrlParameter(sParam) {
         }
     }
 };
-
 /*
  {"prevPage":{"0":{},"length":1},
  "toPage":{"0":{"jQuery111307613389508333057":238},"length":1},
