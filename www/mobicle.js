@@ -440,7 +440,7 @@
         }
         var p = this;
         //Check to see if the event already exists.  If so return
-        if ($('#deviceEventsList li[data-event-index="+i+"]').length) return;
+        if ($('#deviceEventsList li[data-event-index="'+i+'"]').length) return;
 
         if ( typeof add == 'undefined') {
             console.log('saving event monitor');
@@ -511,9 +511,9 @@
                 var eventString = e.type;
                 console.log(eventString + " fired");
                 var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
+                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
+                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
                 logEntry('Global', 'event', eventString + ': ' + data.data);
             }, false);
         }
@@ -540,11 +540,10 @@
             console.log(eventString + ' listener added');
             particle.eventSource.addEventListener(eventString, function(e) {
                 var eventString = e.type;
-                console.log(eventString + " fired");
                 var data = JSON.parse(e.data);
                 $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
+                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
                 logEntry('Global', 'event', eventString + ': ' + data.data);
             }, false);
         }
@@ -735,14 +734,12 @@
         }).done(function(data) {
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
             if(device.stop) return;
-            console.log(device.stop);
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 var newI = (device.variables.length - 1) == i ? 0 : i + 1;
                 device.updateVariable(newI);
             }, timeout);
         }).fail(function() {
             if(device.stop) return;
-            console.log('not stopped');
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 device.updateVariable(i);
             }, timeout);
