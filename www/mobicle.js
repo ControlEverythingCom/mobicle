@@ -16,7 +16,7 @@
                 //Handle form submit
                 $('#addEventPublishButtonForm').addClass('addEventPublishButtonForm');
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-                    if ($("input[type=submit][clicked=true]").val() == 'submit')
+                    if ($("input[type=submit][clicked=true]", this).val() == 'submit')
                         ParticleAPI.addEventButton($(this).getValues());
                     $('#addEventPublishButtonPopup').popup('close');
                     return false;
@@ -38,14 +38,13 @@
                 $('#addEventPopup').popup().css({
                     "padding" : "20px"
                 });
-                $('#addEventConfirmButton:not(.processed)').addClass('processed').click(function() {
-                    console.log('Adding event');
-                    ParticleAPI.addEventMonitor($('#eventIDToAdd').val());
+                $('#addEventMonitor:not(.processed)').addClass('processed').submit(function(){
+                    if ($("input[type=submit][clicked=true]", this).val() == 'submit'){
+                        ParticleAPI.addEventMonitor($(this).getValues());
+                    }
                     $('#addEventPopup').popup('close');
                     $('#deviceEventsList').listview().listview('refresh');
-                });
-                $('#addEventCancelButton:not(.processed)').addClass('processed').click(function() {
-                    $('#addEventPopup').popup('close');
+                    return false;
                 });
                 $('#addEventPopup').popup('open');
             });
@@ -125,6 +124,9 @@
                     var event = 'load_page_' + page;
                     $('body').trigger(event, a, b);
                 }
+            },
+            beforechange: function(e, ui){
+                $('body').trigger('pageunload');
             }
         });
 
@@ -429,20 +431,14 @@
     };
 
     Particle.prototype.addEventMonitor = function(i, add) {
-        console.log(this);
-        if(typeof(i) !== 'string') var event = this.eventMonitor[i];
+        if(typeof(i) !== 'object') var event = this.eventMonitor[i];
         else{
-            var event=i;
+            var event=i.eventID;
             i=this.eventMonitor.length;
         }
-        console.log('addEventMonitor');
-        console.log(add);
         var p = this;
         //Check to see if the event already exists.  If so return
-        if ($('#deviceEventsList').find($('#' + event)).length) {
-            p.addEventListener(event);
-            return;
-        }
+        if ($('#deviceEventsList li[data-event-index="+i+"]').length) return;
 
         if ( typeof add == 'undefined') {
             console.log('saving event monitor');
@@ -455,11 +451,11 @@
         //Create the li an list view for the new event
         var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
             "padding" : "0px"
-        }).attr("id", event);
+        }).attr('data-event-index', i).attr('data-event-id', event);
 
         var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event).css('margin', '0px').appendTo(collapsibleli);
 
-        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "list").listview();
+        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "-list").listview();
         collapsibleli.append(ul).appendTo($('#deviceEventsList')).collapsible({
             refresh : true
         });
@@ -477,18 +473,18 @@
                     padding : '20px'
                 });
                 $('#eventID').text(event);
-                $('#removeEventConfirmButton').click(function() {
-                    console.log("removing event: " + event);
-                    delete p.eventMonitor[event];
-                    console.log(p.eventMonitor);
-                    $('#' + event).remove();
-                    var json = JSON.stringify(p.eventMonitor);
-                    window.localStorage.setItem('event_monitors', json);
-                    $('#deviceEventsList').listview().listview('refresh');
+                $('#removeEventForm').submit(function() {
+                    if($("input[type=submit][clicked=true]", this).val() == 'remove'){
+                        
+                        console.log("removing event: " + event);
+                        p.eventMonitor[i]=false;
+                        collapsibleli.remove();
+                        var json = JSON.stringify(p.eventMonitor);
+                        window.localStorage.setItem('event_monitors', json);
+                        $('#deviceEventsList').listview().listview('refresh');
+                    }
                     $('#removeEventPopup').popup('close');
-                });
-                $('#removeEventCancelButton').click(function() {
-                    $('#removeEventPopup').popup('close');
+                    return false;
                 });
                 $('#removeEventPopup').popup('open');
 
@@ -593,8 +589,8 @@
             this.devices[deviceID].update();
             return this.devices[deviceID];
         }
-        var device = new Device(this, deviceID);
-        device.update();
+        this.devices[deviceID] = new Device(this, deviceID);
+        this.devices[deviceID].update();
         return device;
     };
 
@@ -613,6 +609,13 @@
         currentDevice = this;
         this.updateVaraiablesTimeout;
         this.updateVaraiablesRequest;
+        this.stop=false;
+        var device=this;
+        $('body').on('pageunload', function(){
+           device.stop=true;
+           if(isset(device.updateVariablesRequest)) device.updateVariablesRequest.abort();
+           window.clearTimeout(device.updateVaraiablesRequest);
+        });
         this.page = $('body').pagecontainer('getActivePage').get(0);
         this.isnew = true;
     }
@@ -682,8 +685,7 @@
     Device.prototype.updateFunctions = function() {
         var device = this;
         $('.deviceFunctionList li:not([data-role=list-divider])', device.page).remove();
-        console.log($('.deviceFunctionList', device.page));
-        console.log(this.data.functions);
+        
         $.each(this.data.functions, function(key, func) {
             device.functions.push(func);
 
@@ -729,12 +731,15 @@
             url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
-            logEntry(device.data.name, 'variable', data.name + ': ' + data.result);
+            if(device.stop) return;
+            console.log(device.stop);
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 var newI = (device.variables.length - 1) == i ? 0 : i + 1;
                 device.updateVariable(newI);
             }, timeout);
         }).fail(function() {
+            if(device.stop) return;
+            console.log('not stopped');
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 device.updateVariable(i);
             }, timeout);

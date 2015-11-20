@@ -106,40 +106,40 @@
                         <h1 role="heading" style="margin:0">Add Event</h1>
                     </div>
                     <br>
-                    <ul data-role="listview" data-inset="true">
-                        <li>
-                            <label>Event</label>
-                            <input id="eventIDToAdd" type="text">
-                            </input>
-                        </li>
-                        <li>
-                            <button class="ui-btn ui-corner-all ui-shadow" id="addEventConfirmButton" style="float:left">
-                                OK
-                            </button>
-                            <button class="ui-btn ui-corner-all ui-shadow" id="addEventCancelButton" style="float:right">
-                                Cancel
-                            </button>
-                        </li>
-                    </ul>
+                    <form id="addEventMonitor">
+                        <ul data-role="listview" data-inset="true">
+                            <li>
+                                <label>Event</label>
+                                <input name="eventID" type="text">
+                                </input>
+                            </li>
+                            <li>
+                                <input type="submit" value="submit" />
+                            </li>
+                            <li>
+                                <input type="submit" value="cancel" />
+                            </li>
+                        </ul>
+                    </form>
                 </div>
                 <div data-role="popup" data-history="false" id="removeEventPopup" data-position-to="window">
                     <div data-role="header" class = "ui-corner-all">
                         <h1 role="heading" style="margin:0">Remove Event?</h1>
                     </div>
                     <br>
-                    <ul data-role="listview" data-inset="true">
-                        <li>
-                            <label id="eventID"></label>
-                        </li>
-                        <li>
-                            <button class="ui-btn ui-corner-all ui-shadow" id="removeEventConfirmButton" style="float:left">
-                                OK
-                            </button>
-                            <button class="ui-btn ui-corner-all ui-shadow" id="removeEventCancelButton" style="float:right">
-                                Cancel
-                            </button>
-                        </li>
-                    </ul>
+                    <form id="removeEventForm">
+                        <ul data-role="listview" data-inset="true">
+                            <li>
+                                <label id="eventID"></label>
+                            </li>
+                            <li>
+                                <input type="submit" value="remove" />
+                            </li>
+                            <li>
+                                <input type="submit" value="cancel" />
+                            </li>
+                        </ul>
+                    </form>
                 </div>
             </div>
         </div>
