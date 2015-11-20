@@ -593,7 +593,7 @@
         }
         this.devices[deviceID] = new Device(this, deviceID);
         this.devices[deviceID].update();
-        return device;
+        return this.devices[deviceID];
     };
 
     function Device(api, did) {
