@@ -142,7 +142,7 @@
                         window.localStorage.setItem('access_token', result.access_token);
                         //window.location.href = 'deviceList.html';
                         ParticleAPI = new Particle(result.access_token);
-                        $('body').pagecontainer('change', 'index.html');
+                        $('body').pagecontainer('change', '/');
                         window.location.reload(true);
                     } else {
                         console.log('bad login');
@@ -676,7 +676,7 @@
         }).fail(function() {
             // window.location = window.location;
             // device.update();
-            $('body').pagecontainer('change', 'index.html');
+            $('body').pagecontainer('change', '/');
             $('#overlay').css({
                 display : 'none'
             });
@@ -733,12 +733,13 @@
     };
     Device.prototype.updateVariable = function(i, to) {
         var device = this;
-        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).text() == '') ? 10 : 3000;
+        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).length<1) ? 10 : 3000;
 
         device.updateVaraiablesRequest = $.ajax({
             timeout : 3000,
             url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
+            if($("li#" + device.id + data.name).length<1) return;
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
             if(device.stop) return;
             device.updateVaraiablesTimeout = window.setTimeout(function() {
