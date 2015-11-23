@@ -62,39 +62,74 @@
                         Functions
                     </li>
                 </ul>
-                <div data-role="popup" data-history="false" class="addButtonPopup" data-position-to="window" style="padding: 20px">
+                <div data-role="popup" data-history="false" class="addControlPopup" data-position-to="window" style="padding: 20px">
                     <div data-role="header" class="ui-corner-all">
-                        <h1 role="heading" style="margin: 0">Add Button</h1>
+                        <h1 role="heading" style="margin: 0">Add Control</h1>
                     </div>
-                    <br>
-                    <form class="addButtonForm">
-
-                        <ul data-role="listview" data-inset="true" >
-                            <li>
-                                <label>Function</label>
-                                <select class="buttonFunctionList" name="buttonFunctionList">
-                                    <option value="_none">Select a Function</option>
-                                </select>
-                            </li>
-                            <li>
-                                <label>Name of Button</label>
-                                <input name="buttonName" type="text" />
-                            </li>
-                            <li>
-                                <label>Arguments</label>
-                                <input name="buttonArguments" type="text" />
-                            </li>
-                            <li>
-                                <input type="submit" value="submit" />
-                            </li>
-                            <li>
-                                <input type="submit" value="delete" />
-                            </li>
-                            <li>
-                                <input type="submit" value="cancel" />
-                            </li>
-                        </ul>
-                    </form>
+                    <div data-role="collapsible-set">
+                        <div data-role="collapsible" data-collapsed="false">
+                            <h2>Button</h2>
+                            <form class="addButtonForm">
+                                <ul data-role="listview" data-inset="true" >
+                                    <li>
+                                        <label>Function</label>
+                                        <select class="controlFunctionList" name="controlFunctionList">
+                                            <option value="_none">Select a Function</option>
+                                        </select>
+                                    </li>
+                                    <li>
+                                        <label>Name of Button:</label>
+                                        <input name="controlName" type="text" />
+                                    </li>
+                                    <li>
+                                        <label>Arguments:</label>
+                                        <input name="controlArguments" type="text" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="submit" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="delete" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="cancel" />
+                                    </li>
+                                </ul>
+                            </form>
+                        </div>
+                        <div data-role="collapsible">
+                            <h2>Slider</h2>
+                            <form class="addSliderForm">
+                                <ul data-role="listview" data-inset="true" >
+                                    <li>
+                                        <label>Function</label>
+                                        <select class="controlFunctionList" name="controlFunctionList">
+                                            <option value="_none">Select a Function</option>
+                                        </select>
+                                    </li>
+                                    <li>
+                                        <label>Name of Slider:</label>
+                                        <input name="controlName" type="text" />
+                                    </li>
+                                    <li>
+                                        <label>Arguments: (use "val" for the slider value, i.e. "1,val,255")</label>
+                                        <input name="controlArguments" type="text" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="submit" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="delete" />
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="cancel" />
+                                    </li>
+                                </ul>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    
                 </div>
                 <div data-role="popup" data-history="false" class="callFunctionPopup" data-position-to="window">
                     <div data-role="header" class = "ui-corner-all">
