@@ -504,21 +504,30 @@
 
     Particle.prototype.initializeEvents = function() {
         console.log(this.events);
+        
+        var particle=this;
+        
+        
         for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
             console.log(eventString + ' listener added');
-            this.eventSource.addEventListener(eventString, function(e) {
-                var eventString = e.type;
-                console.log(eventString + " fired");
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
-                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
+            this.eventSource.addEventListener(eventString, function(e){
+                Particle.prototype.eventHandler.call(particle, e);
             }, false);
         }
     };
-
+    Particle.prototype.eventHandler=function(e){
+        var eventStrings={};
+        for(i in this.eventMonitor) eventStrings[this.eventMonitor[i]]=i;
+        var eventString = e.type;
+        var i=eventStrings[eventString];
+        console.log(eventString + " fired");
+        var data = JSON.parse(e.data);
+        $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
+        $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+        $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
+        logEntry('Global', 'event', eventString + ': ' + data.data);
+    };
     Particle.prototype.addEventListener = function(i) {
     	
     	var eventString=this.eventMonitor[i];
@@ -540,13 +549,8 @@
             };
         } else if (particle.eventSource.readyState == 1) {
             console.log(eventString + ' listener added');
-            particle.eventSource.addEventListener(eventString, function(e) {
-                var eventString = e.type;
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
+            this.eventSource.addEventListener(eventString, function(e){
+                particle.eventHandler.call(particle, e);
             }, false);
         }
 
