@@ -499,7 +499,7 @@
         $('#deviceEventsList').listview().listview('refresh');
 
         //Add the listener for the event
-        p.addEventListener(event);
+        p.addEventListener(i);
     };
 
     Particle.prototype.initializeEvents = function() {
@@ -519,7 +519,9 @@
         }
     };
 
-    Particle.prototype.addEventListener = function(eventString) {
+    Particle.prototype.addEventListener = function(i) {
+    	
+    	var eventString=this.eventMonitor[i];
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
