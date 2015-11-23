@@ -591,12 +591,11 @@
     };
 
     Particle.prototype.updateDevice = function(deviceID) {
-        if (isset(this.devices[deviceID])) {
-            this.devices[deviceID].update();
-            return this.devices[deviceID];
+        if (!isset(this.devices[deviceID])) {
+            this.devices[deviceID] = new Device(this, deviceID);
         }
-        this.devices[deviceID] = new Device(this, deviceID);
         this.devices[deviceID].update();
+        console.log(this.devices);
         return this.devices[deviceID];
     };
 
