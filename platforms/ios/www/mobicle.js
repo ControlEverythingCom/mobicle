@@ -16,7 +16,7 @@
                 //Handle form submit
                 $('#addEventPublishButtonForm').addClass('addEventPublishButtonForm');
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-                    if ($("input[type=submit][clicked=true]").val() == 'submit')
+                    if ($("input[type=submit][clicked=true]", this).val() == 'submit')
                         ParticleAPI.addEventButton($(this).getValues());
                     $('#addEventPublishButtonPopup').popup('close');
                     return false;
@@ -38,14 +38,13 @@
                 $('#addEventPopup').popup().css({
                     "padding" : "20px"
                 });
-                $('#addEventConfirmButton:not(.processed)').addClass('processed').click(function() {
-                    console.log('Adding event');
-                    ParticleAPI.addEventMonitor($('#eventIDToAdd').val());
+                $('#addEventMonitor:not(.processed)').addClass('processed').submit(function(){
+                    if ($("input[type=submit][clicked=true]", this).val() == 'submit'){
+                        ParticleAPI.addEventMonitor($(this).getValues());
+                    }
                     $('#addEventPopup').popup('close');
                     $('#deviceEventsList').listview().listview('refresh');
-                });
-                $('#addEventCancelButton:not(.processed)').addClass('processed').click(function() {
-                    $('#addEventPopup').popup('close');
+                    return false;
                 });
                 $('#addEventPopup').popup('open');
             });
@@ -78,6 +77,8 @@
                 $('.addButtonButton', device.page).click(function() {
                     //Handle form submit
                     console.log('add submit handler');
+                    // $('[name=buttonFunctionList] option').eq(1).prop('selected', true);
+                    $('[name="buttonFunctionList"]', device.page).val($('[name="buttonFunctionList"] option', device.page).eq(1).val()).selectmenu("refresh");
                     $('.addButtonPopup', device.page).removeClass('ui-popup-hidden').popup('open');
                     console.log("popup called");
                     console.log($('#addButtonPopup'));
@@ -125,6 +126,9 @@
                     var event = 'load_page_' + page;
                     $('body').trigger(event, a, b);
                 }
+            },
+            beforechange: function(e, ui){
+                $('body').trigger('pageunload');
             }
         });
 
@@ -259,7 +263,7 @@
         var retVal = true;
         if (!isset(this.eventListeners[e]))
             this.eventListeners[e] = [];
-        for (i in arguments)
+        for (var i in arguments)
         if (i !== 0)
             args.push(arguments[i]);
         $.each(this.eventListeners[e], function(f) {
@@ -322,8 +326,10 @@
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
                         hrefLink.click(function() {
-                            ParticleAPI.eventSource.close();
-                            ParticleAPI.eventSource = false;
+                            if(ParticleAPI.eventSource){
+                                ParticleAPI.eventSource.close();
+                                ParticleAPI.eventSource = false;
+                            }
                         });
                         hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
@@ -353,12 +359,15 @@
     };
 
     Particle.prototype.initStorage = function(prop, store, method) {
+        var tmp=this[prop];
         if (this[prop] = window.localStorage.getItem(store)) {
             this[prop] = $.grep($.parseJSON(this[prop]), function(v) {
                 return v !== false;
             });
-            for (i in this[prop])this[method](i, false);
+            for(var i in this[prop]) this[method](i, false);
             this.trigger(prop + '_loaded', this[prop]);
+        }else{
+            this[prop]=tmp;
         }
     };
 
@@ -372,8 +381,8 @@
                 return;
         } else if ( typeof i === 'undefined') {
             i = this.eventPublish.length;
-            this.eventMonitor.push(vals);
-            var json = JSON.stringify(this.eventMonitor);
+            this.eventPublish.push(vals);
+            var json = JSON.stringify(this.eventPublish);
             window.localStorage.setItem('event_publish_buttons', json);
         }
 
@@ -385,9 +394,9 @@
 
             li.find('a.publisher').text(vals.buttonName).attr('data-eventName', vals.eventName).attr('data-eventData', vals.eventData).attr('data-eventTTL', vals.eventTTL);
 
-            this.eventMonitor[i] = vals;
+            this.eventPublish[i] = vals;
 
-            var json = JSON.stringify(this.eventMonitor);
+            var json = JSON.stringify(this.eventPublish);
 
             window.localStorage.setItem('event_publish_buttons', json);
 
@@ -424,15 +433,14 @@
     };
 
     Particle.prototype.addEventMonitor = function(i, add) {
-        var event = this.eventMonitor[i];
-        console.log('addEventMonitor');
-        console.log(add);
+        if(typeof(i) !== 'object') var event = this.eventMonitor[i];
+        else{
+            var event=i.eventID;
+            i=this.eventMonitor.length;
+        }
         var p = this;
         //Check to see if the event already exists.  If so return
-        if ($('#deviceEventsList').find($('#' + event)).length) {
-            p.addEventListener(event);
-            return;
-        }
+        if ($('#deviceEventsList li[data-event-index="'+i+'"]').length) return;
 
         if ( typeof add == 'undefined') {
             console.log('saving event monitor');
@@ -445,11 +453,11 @@
         //Create the li an list view for the new event
         var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
             "padding" : "0px"
-        }).attr("id", event);
+        }).attr('data-event-index', i).attr('data-event-id', event);
 
         var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event).css('margin', '0px').appendTo(collapsibleli);
 
-        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "list").listview();
+        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "-list").listview();
         collapsibleli.append(ul).appendTo($('#deviceEventsList')).collapsible({
             refresh : true
         });
@@ -467,18 +475,18 @@
                     padding : '20px'
                 });
                 $('#eventID').text(event);
-                $('#removeEventConfirmButton').click(function() {
-                    console.log("removing event: " + event);
-                    delete p.eventMonitor[event];
-                    console.log(p.eventMonitor);
-                    $('#' + event).remove();
-                    var json = JSON.stringify(p.eventMonitor);
-                    window.localStorage.setItem('event_monitors', json);
-                    $('#deviceEventsList').listview().listview('refresh');
+                $('#removeEventForm').submit(function() {
+                    if($("input[type=submit][clicked=true]", this).val() == 'remove'){
+                        
+                        console.log("removing event: " + event);
+                        p.eventMonitor[i]=false;
+                        collapsibleli.remove();
+                        var json = JSON.stringify(p.eventMonitor);
+                        window.localStorage.setItem('event_monitors', json);
+                        $('#deviceEventsList').listview().listview('refresh');
+                    }
                     $('#removeEventPopup').popup('close');
-                });
-                $('#removeEventCancelButton').click(function() {
-                    $('#removeEventPopup').popup('close');
+                    return false;
                 });
                 $('#removeEventPopup').popup('open');
 
@@ -496,16 +504,16 @@
 
     Particle.prototype.initializeEvents = function() {
         console.log(this.events);
-        for (i in this.eventMonitor) {
+        for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
             console.log(eventString + ' listener added');
             this.eventSource.addEventListener(eventString, function(e) {
                 var eventString = e.type;
                 console.log(eventString + " fired");
                 var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
+                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
+                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
                 logEntry('Global', 'event', eventString + ': ' + data.data);
             }, false);
         }
@@ -532,11 +540,10 @@
             console.log(eventString + ' listener added');
             particle.eventSource.addEventListener(eventString, function(e) {
                 var eventString = e.type;
-                console.log(eventString + " fired");
                 var data = JSON.parse(e.data);
                 $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#' + eventString + ' h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#' + eventString + 'list').listview().listview('refresh');
+                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
                 logEntry('Global', 'event', eventString + ': ' + data.data);
             }, false);
         }
@@ -583,9 +590,9 @@
             this.devices[deviceID].update();
             return this.devices[deviceID];
         }
-        var device = new Device(this, deviceID);
-        device.update();
-        return device;
+        this.devices[deviceID] = new Device(this, deviceID);
+        this.devices[deviceID].update();
+        return this.devices[deviceID];
     };
 
     function Device(api, did) {
@@ -603,6 +610,13 @@
         currentDevice = this;
         this.updateVaraiablesTimeout;
         this.updateVaraiablesRequest;
+        this.stop=false;
+        var device=this;
+        $('body').on('pageunload', function(){
+           device.stop=true;
+           if(isset(device.updateVariablesRequest)) device.updateVariablesRequest.abort();
+           window.clearTimeout(device.updateVaraiablesRequest);
+        });
         this.page = $('body').pagecontainer('getActivePage').get(0);
         this.isnew = true;
     }
@@ -625,6 +639,7 @@
 
     Device.prototype.update = function() {
         var device = this;
+        this.stop=false;
         $('#overlay').css({
             display : 'block'
         });
@@ -672,8 +687,7 @@
     Device.prototype.updateFunctions = function() {
         var device = this;
         $('.deviceFunctionList li:not([data-role=list-divider])', device.page).remove();
-        console.log($('.deviceFunctionList', device.page));
-        console.log(this.data.functions);
+        
         $.each(this.data.functions, function(key, func) {
             device.functions.push(func);
 
@@ -697,7 +711,7 @@
 
     Device.prototype.updateVariables = function() {
         var device = this;
-        for (i in this.data.variables) {
+        for(var i in this.data.variables) {
             this.variables.push(i);
             var id = this.id + i;
             if (!$('.deviceVariablesList', device.page).find($('#' + id)).length) {
@@ -719,12 +733,13 @@
             url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
-            logEntry(device.data.name, 'variable', data.name + ': ' + data.result);
+            if(device.stop) return;
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 var newI = (device.variables.length - 1) == i ? 0 : i + 1;
                 device.updateVariable(newI);
             }, timeout);
         }).fail(function() {
+            if(device.stop) return;
             device.updateVaraiablesTimeout = window.setTimeout(function() {
                 device.updateVariable(i);
             }, timeout);
