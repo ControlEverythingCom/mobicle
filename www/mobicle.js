@@ -325,12 +325,12 @@
                     if (!li.children('a').length) {
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
-                        hrefLink.click(function() {
-                            if(ParticleAPI.eventSource){
-                                ParticleAPI.eventSource.close();
-                                ParticleAPI.eventSource = false;
-                            }
-                        });
+                        // hrefLink.click(function() {
+                            // if(ParticleAPI.eventSource){
+                                // ParticleAPI.eventSource.close();
+                                // ParticleAPI.eventSource = false;
+                            // }
+                        // });
                         hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
                     }
@@ -506,7 +506,6 @@
         console.log(this.events);
         
         var particle=this;
-        
         
         for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
