@@ -692,19 +692,26 @@
             device.functions.push(func);
 
             var functionLI = $("<li></li>").appendTo($('.deviceFunctionList', device.page)).text(func).attr('id', func).click(function() {
+            	var f=$('.callFunctionPopup', device.page).attr('data-device-function');
+            	if(f!==func){
+            		$('[name = "functionArgument"]', device.page).val('');
+            		$('.callFunctionPopup', device.page).attr('data-device-function', func);
+            	}
+            	
                 $('.callFunctionPopup', device.page).popup().css({
                     "padding" : "20px"
                 });
-                $('.callFunctionConfirm:not(.processed)', device.page).addClass('processed').click(function() {
-                    device.callFunction(func, $('#functionArgument').val());
-                    $('#callFunctionPopup').popup('close');
-                });
-                $('.callFunctionCancel:not(.processed)', device.page).addClass('processed').click(function() {
-                    $('.callFunctionPopup', device.page).popup('close');
-                });
                 $('.callFunctionPopup', device.page).popup('open');
-
             });
+            
+        });
+        $('.callFunctionConfirm:not(.processed)', device.page).addClass('processed').click(function() {
+        	var f=$('.callFunctionPopup', device.page).attr('data-device-function');
+            device.callFunction(f, $('[name = "functionArgument"]', device.page).val());
+            $('.callFunctionPopup', device.page).popup('close');
+        });
+        $('.callFunctionCancel:not(.processed)', device.page).addClass('processed').click(function() {
+            $('.callFunctionPopup', device.page).popup('close');
         });
         $('.deviceFunctionList', device.page).listview().listview('refresh');
     };
