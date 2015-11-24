@@ -50,7 +50,13 @@
                         <div class="addButtonButton ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative;">
                         </div>
                     </li>
-                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
+                </ul>
+                <ul data-role="listview" class="deviceSliderList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Sliders
+                        <div class="addSliderButton ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative;">
+                        </div>
+                    </li>
                 </ul>
                 <ul data-role="listview" class="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
                     <li data-role="list-divider">
@@ -83,6 +89,48 @@
                             <li>
                                 <label>Arguments</label>
                                 <input name="buttonArguments" type="text" />
+                            </li>
+                            <li>
+                                <input type="submit" value="submit" />
+                            </li>
+                            <li>
+                                <input type="submit" value="delete" />
+                            </li>
+                            <li>
+                                <input type="submit" value="cancel" />
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+                <div data-role="popup" data-history="false" class="addSliderPopup" data-position-to="window" style="padding: 20px">
+                    <div data-role="header" class="ui-corner-all">
+                        <h1 role="heading" style="margin: 0">Add Slider</h1>
+                    </div>
+                    <br>
+                    <form class="addSliderForm">
+
+                        <ul data-role="listview" data-inset="true" >
+                            <li>
+                                <label>Function</label>
+                                <select class="sliderFunctionList" name="sliderFunctionList">
+                                    <option value="_none">Select a Function</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>Name of Slider</label>
+                                <input name="sliderName" type="text" />
+                            </li>
+                            <li>
+                                <label>Minimum Value</label>
+                                <input name="minimumValue" type="text" />
+                            </li>
+                            <li>
+                                <label>Maximum Value</label>
+                                <input name="maximumValue" type="text" />
+                            </li>
+                            <li>
+                                <label>Arguments (use "val" for the value of the slider, ie. "1,val,255")</label>
+                                <input name="sliderArguments" type="text" />
                             </li>
                             <li>
                                 <input type="submit" value="submit" />

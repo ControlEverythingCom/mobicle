@@ -59,13 +59,6 @@
                 window.clearTimeout(ParticleAPI.intervals.deviceList);
                 ParticleAPI.intervals.deviceList = false;
             }
-            // if(isset(ui)){
-                // console.log(ui);
-                // var url=$(ui.toPage).attr('data-url');
-                // console.log(url);
-                // console.log(getUrlParameter('deviceid', url));
-            // }
-            console.log([url, getUrlParameter('deviceid', url)]);
             var device = ParticleAPI.updateDevice(getUrlParameter('deviceid', url), page);
             
             if (!$(device.page).hasClass('processed')) {
@@ -95,9 +88,35 @@
                     $('.addButtonPopup', device.page).popup('close');
                     return false;
                 });
+                $('.addSliderPopup', device.page).popup();
+                $('.addSliderPopup', device.page).on('popupafterclose', function() {
+                    // $('[name=buttonFunctionList]').val('_none');
+                    $('[name=sliderName]', device.page).val('');
+                    $('[name=sliderArguments]', device.page).val('');
+                });
+                $('.addSliderButton', device.page).click(function() {
+                    //Handle form submit
+                    // $('[name=buttonFunctionList] option').eq(1).prop('selected', true);
+                    $('[name="sliderFunctionList"]', device.page).val($('[name="sliderFunctionList"] option', device.page).eq(1).val()).selectmenu("refresh");
+                    $('.addSliderPopup', device.page).removeClass('ui-popup-hidden').popup('open');
+                });
+                $('.addSliderForm', device.page).submit(function() {
+                    var op = $("input[type=submit][clicked=true]", this).val();
+                    var vals = $(this).getValues();
+                    switch(op) {
+                    case "submit":
+                        device.addSlider(vals);
+                        break;
+                    case "delete":
+                        device.deleteSlider(vals);
+                        break;
+                    }
+                    $('.addSliderPopup', device.page).popup('close');
+                    return false;
+                });
             }
             device.loaded(function(device) {
-                var select = $('select.buttonFunctionList', device.page);
+                var select = $('select.buttonFunctionList, select.sliderFunctionList', device.page);
                 $('.deviceFunctionList li:not([data-role=list-divider])', device.page).each(function() {
                     var option = $('<option></option>').text($(this).text()).val($(this).text());
                     select.append(option);
@@ -576,6 +595,7 @@
         this._loaded = [];
         this.isLoaded = false;
         this.buttons = [];
+        this.sliders = [];
         this.eventButtons = [];
         this.events = {};
         this.functions = [];
@@ -638,6 +658,13 @@
                 device.buttons = $.parseJSON(buttons);
                 for (var i = 0; i < device.buttons.length; i++) {
                     device.addButton(device.buttons[i], false);
+                }
+            }
+            var sliders = window.localStorage.getItem('device_' + device.id + '_sliders');
+            if (sliders) {
+                device.sliders = $.parseJSON(sliders);
+                for (var i = 0; i < device.sliders.length; i++) {
+                    device.addSlider(device.sliders[i], false);
                 }
             }
             device.loaded();
@@ -816,6 +843,103 @@
         //Save array
         var json = JSON.stringify(this.buttons);
         window.localStorage.setItem('device_' + this.id + '_buttons', json);
+        //refresh button list view
+        liParent.listview().listview('refresh');
+    };
+    Device.prototype.addSlider = function(vals, add) {
+        var device = this;
+        var id = vals.sliderName.replace(/[^0-9a-zA-Z]/g, '_')+'_slider';
+
+        //Check to see if parent list view has child with this id already.  If so we are editing
+        if ($('.deviceSliderList', device.page).find($('#' + id)).length) {
+            //We are editing.
+            //Get instance of old LI so we can replace with the new one
+            var oldLI = $('#' + id);
+            var newLI = $('<li></li>').attr("id", id);
+            var slider = $('<input type="range" />').attr('id', id+'_el').attr('name', id+'_el').attr('min', vals.minimumValue).attr('max',vals.maximumValue).attr('val', 0).attr('data-mini', true).change(function() {
+                var args=vals.sliderArguments.replace('val', $(this).val());
+                device.callFunction(vals.sliderFunctionList, args);
+                return false;
+            }).appendTo(newLI).slider();
+            var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
+                "width" : "3.5em"
+            }).appendTo(newLI);
+            //Edit Button click handler
+            edit.click(function() {
+                var sliderIndex = newLI.index();
+                var b = device.sliders[sliderIndex - 1];
+                $.each(b, function(name, value) {
+                    $('[name=' + name + ']', device.page).val(value);
+                });
+                $('.addSliderPopup', device.page).popup('open');
+            });
+            var index = oldLI.index() - 1;
+            oldLI.replaceWith(newLI);
+
+            this.sliders.splice(index, 1, vals);
+            var json = JSON.stringify(this.sliders);
+            window.localStorage.setItem('device_' + this.id + '_sliders', json);
+            newLI.parent().listview().listview('refresh');
+        } else {
+            if ( typeof add === 'undefined') {
+                this.sliders.push(vals);
+                var json = JSON.stringify(this.sliders);
+                window.localStorage.setItem('device_' + this.id + '_sliders', json);
+            }
+            var titleLink=$('<a>'+vals.sliderName+'</a>');
+            
+            var title = $('<li></li>').attr("id", id+'_title').append(titleLink);
+            title.appendTo('.deviceSliderList', device.page);
+            var li = $('<li></li>').attr("id", id);
+            var wrapper=$('<div></div>').appendTo(li);
+            var slider = $('<input type="range" />').attr('id', id+'_el').attr('min', vals.minimumValue).attr('max',vals.maximumValue);
+            $('<label></label>').attr('for', id+'_el').appendTo(wrapper);
+            slider.appendTo(wrapper);
+            var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(title);
+            li.appendTo('.deviceSliderList', device.page);
+            //Edit Button click handler
+            $('.addSliderPopup').popup();
+            titleLink.click(function(){
+                edit.click();
+                return false;
+            });
+            edit.click(function() {
+                var sliderIndex = li.index()/2;
+                if(sliderIndex<1) sliderIndex=1;
+                var b = device.sliders[sliderIndex - 1];
+                $.each(b, function(name, value) {
+                    $('.addSliderPopup', device.page).attr("data-history", "false").popup();
+                    $('[name=' + name + ']', device.page).val(value);
+
+                });
+                $('.addSliderPopup', device.page).popup('open');
+            });
+            li.parent().trigger('create');
+            slider.slider();
+            li.parent().listview().listview('refresh');
+            $('#'+id+'_el').on('slidestop', function() {
+                var args=vals.sliderArguments.replace('val', $(this).val());
+                device.callFunction(vals.sliderFunctionList, args);
+                return false;
+            });
+            
+        }
+
+    };
+    Device.prototype.deleteSlider = function(vals) {
+        //Get instance of device object
+        var device = this;
+        //Get instance of LI parent before deleting
+        var liParent = $('#' + vals.sliderName.replace(/[^0-9a-zA-Z]/g, '_'), device.page).parent();
+        //Get index of LI so we can reference that index in the buttons array
+        var liIndex = $('#' + vals.sliderName.replace(/[^0-9a-zA-Z]/g, '_'), device.page).index() - 1;
+        //Remove the LI from the view
+        $('#' + vals.sliderName.replace(/[^0-9a-zA-Z]/g, '_'), device.page).remove();
+        //Remove button from array
+        device.sliders.splice(liIndex, 1);
+        //Save array
+        var json = JSON.stringify(this.sliders);
+        window.localStorage.setItem('device_' + this.id + '_sliders', json);
         //refresh button list view
         liParent.listview().listview('refresh');
     };
