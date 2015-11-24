@@ -209,7 +209,7 @@
         if (window.isphone) {
             document.addEventListener("deviceReady", mobileReady, false);
         } else {
-            $('a[href="/index.html"]').attr('href', '/');
+            $('a[href="index.html"]').attr('href', '/');
             window.setTimeout(mobileReady, 50);
 
         }
