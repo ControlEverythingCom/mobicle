@@ -142,7 +142,7 @@
                         window.localStorage.setItem('access_token', result.access_token);
                         //window.location.href = 'deviceList.html';
                         ParticleAPI = new Particle(result.access_token);
-                        $('body').pagecontainer('change', 'index.html');
+                        $('body').pagecontainer('change', '/');
                         window.location.reload(true);
                     } else {
                         console.log('bad login');
@@ -499,27 +499,38 @@
         $('#deviceEventsList').listview().listview('refresh');
 
         //Add the listener for the event
-        p.addEventListener(event);
+        p.addEventListener(i);
     };
 
     Particle.prototype.initializeEvents = function() {
         console.log(this.events);
+        
+        var particle=this;
+        
+        
         for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
             console.log(eventString + ' listener added');
-            this.eventSource.addEventListener(eventString, function(e) {
-                var eventString = e.type;
-                console.log(eventString + " fired");
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
-                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
+            this.eventSource.addEventListener(eventString, function(e){
+                Particle.prototype.eventHandler.call(particle, e);
             }, false);
         }
     };
-
-    Particle.prototype.addEventListener = function(eventString) {
+    Particle.prototype.eventHandler=function(e){
+        var eventStrings={};
+        for(i in this.eventMonitor) eventStrings[this.eventMonitor[i]]=i;
+        var eventString = e.type;
+        var i=eventStrings[eventString];
+        console.log(eventString + " fired");
+        var data = JSON.parse(e.data);
+        $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
+        $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
+        $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
+        logEntry('Global', 'event', eventString + ': ' + data.data);
+    };
+    Particle.prototype.addEventListener = function(i) {
+    	
+    	var eventString=this.eventMonitor[i];
         //TODO finish this.
         console.log("Particle.addEventListener");
         console.log(this.accessToken);
@@ -538,13 +549,8 @@
             };
         } else if (particle.eventSource.readyState == 1) {
             console.log(eventString + ' listener added');
-            particle.eventSource.addEventListener(eventString, function(e) {
-                var eventString = e.type;
-                var data = JSON.parse(e.data);
-                $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + 'list'));
-                $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
-                $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
-                logEntry('Global', 'event', eventString + ': ' + data.data);
+            this.eventSource.addEventListener(eventString, function(e){
+                particle.eventHandler.call(particle, e);
             }, false);
         }
 
@@ -676,7 +682,7 @@
         }).fail(function() {
             // window.location = window.location;
             // device.update();
-            $('body').pagecontainer('change', 'index.html');
+            $('body').pagecontainer('change', '/');
             $('#overlay').css({
                 display : 'none'
             });
@@ -692,19 +698,26 @@
             device.functions.push(func);
 
             var functionLI = $("<li></li>").appendTo($('.deviceFunctionList', device.page)).text(func).attr('id', func).click(function() {
+            	var f=$('.callFunctionPopup', device.page).attr('data-device-function');
+            	if(f!==func){
+            		$('[name = "functionArgument"]', device.page).val('');
+            		$('.callFunctionPopup', device.page).attr('data-device-function', func);
+            	}
+            	
                 $('.callFunctionPopup', device.page).popup().css({
                     "padding" : "20px"
                 });
-                $('.callFunctionConfirm:not(.processed)', device.page).addClass('processed').click(function() {
-                    device.callFunction(func, $('#functionArgument').val());
-                    $('#callFunctionPopup').popup('close');
-                });
-                $('.callFunctionCancel:not(.processed)', device.page).addClass('processed').click(function() {
-                    $('.callFunctionPopup', device.page).popup('close');
-                });
                 $('.callFunctionPopup', device.page).popup('open');
-
             });
+            
+        });
+        $('.callFunctionConfirm:not(.processed)', device.page).addClass('processed').click(function() {
+        	var f=$('.callFunctionPopup', device.page).attr('data-device-function');
+            device.callFunction(f, $('[name = "functionArgument"]', device.page).val());
+            $('.callFunctionPopup', device.page).popup('close');
+        });
+        $('.callFunctionCancel:not(.processed)', device.page).addClass('processed').click(function() {
+            $('.callFunctionPopup', device.page).popup('close');
         });
         $('.deviceFunctionList', device.page).listview().listview('refresh');
     };
@@ -726,12 +739,13 @@
     };
     Device.prototype.updateVariable = function(i, to) {
         var device = this;
-        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).text() == '') ? 10 : 3000;
+        var timeout = ($('.deviceVariablesList', device.page).find($('#' + device.id + device.variables[i])).length<1) ? 10 : 3000;
 
         device.updateVaraiablesRequest = $.ajax({
             timeout : 3000,
             url : device.baseUrl + "/" + device.variables[i] + device.urlTail
         }).done(function(data) {
+            if($("li#" + device.id + data.name).length<1) return;
             $("li#" + device.id + data.name).text(data.name + ": " + data.result);
             if(device.stop) return;
             device.updateVaraiablesTimeout = window.setTimeout(function() {
