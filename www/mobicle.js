@@ -854,32 +854,54 @@
         if ($('.deviceSliderList', device.page).find($('#' + id)).length) {
             //We are editing.
             //Get instance of old LI so we can replace with the new one
-            var oldLI = $('#' + id);
+            console.log('editing');
+            var titleLink=$('<a>'+vals.sliderName+'</a>');
+            
+            var title = $('<li></li>').attr("id", id+'_title').append(titleLink);
+            
             var newLI = $('<li></li>').attr("id", id);
-            var slider = $('<input type="range" />').attr('id', id+'_el').attr('name', id+'_el').attr('min', vals.minimumValue).attr('max',vals.maximumValue).attr('val', 0).attr('data-mini', true).change(function() {
-                var args=vals.sliderArguments.replace('val', $(this).val());
-                device.callFunction(vals.sliderFunctionList, args);
-                return false;
-            }).appendTo(newLI).slider();
-            var edit = $('<a></a>').addClass("ui-btn-icon-notext ui-icon-gear").css({
-                "width" : "3.5em"
-            }).appendTo(newLI);
+            var wrapper=$('<div></div>').appendTo(newLI);
+            
+            var slider = $('<input type="range" />').attr('id', id+'_el').attr('min', vals.minimumValue).attr('max',vals.maximumValue);
+            $('<label></label>').attr('for', id+'_el').appendTo(wrapper);
+            slider.appendTo(wrapper);
+            var edit = $('<a></a>').text('edit').addClass("ui-btn-icon-notext ui-icon-gear").appendTo(title);
+            newLI.appendTo('.deviceSliderList', device.page);
             //Edit Button click handler
+            $('.addSliderPopup').popup();
+            titleLink.click(function(){
+                edit.click();
+                return false;
+            });
+            var index = $('#' + id).index()/2;
+            if(index<1) index=0;
             edit.click(function() {
-                var sliderIndex = newLI.index();
-                var b = device.sliders[sliderIndex - 1];
+                var b = device.sliders[index - 1];
                 $.each(b, function(name, value) {
+                    $('.addSliderPopup', device.page).attr("data-history", "false").popup();
                     $('[name=' + name + ']', device.page).val(value);
+
                 });
                 $('.addSliderPopup', device.page).popup('open');
             });
-            var index = oldLI.index() - 1;
-            oldLI.replaceWith(newLI);
+            $('#' + id + '_title').replaceWith(title);
+            $('#' + id).replaceWith(newLI);
+            
+            newLI.parent().trigger('create');
+            slider.slider();
+            newLI.parent().listview().listview('refresh');
+            $('#'+id+'_el').on('slidestop', function() {
+                var args=vals.sliderArguments.replace('val', $(this).val());
+                device.callFunction(vals.sliderFunctionList, args);
+                return false;
+            });
+            
+            
+            
 
             this.sliders.splice(index, 1, vals);
             var json = JSON.stringify(this.sliders);
             window.localStorage.setItem('device_' + this.id + '_sliders', json);
-            newLI.parent().listview().listview('refresh');
         } else {
             if ( typeof add === 'undefined') {
                 this.sliders.push(vals);
@@ -890,8 +912,10 @@
             
             var title = $('<li></li>').attr("id", id+'_title').append(titleLink);
             title.appendTo('.deviceSliderList', device.page);
+            
             var li = $('<li></li>').attr("id", id);
             var wrapper=$('<div></div>').appendTo(li);
+            
             var slider = $('<input type="range" />').attr('id', id+'_el').attr('min', vals.minimumValue).attr('max',vals.maximumValue);
             $('<label></label>').attr('for', id+'_el').appendTo(wrapper);
             slider.appendTo(wrapper);
