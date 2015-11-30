@@ -17,7 +17,7 @@
        under the License.
  */
 
-package io.andor.particle;
+package com.controleverything.mobicle;
 
 import android.os.Bundle;
 import org.apache.cordova.*;

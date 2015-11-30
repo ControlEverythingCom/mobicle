@@ -1,12 +1,11 @@
 (function($) {
     var mobileReady = function() {
-        console.log("document ready");
         var ParticleAPI = null;
         var accessToken = window.localStorage.getItem('access_token');
-        $('body').on('load_page_about', function(a, b) {
+        $('body').on('load_page_about', function(e, page, url) {
             $('#pagetitle').text('About Mobicle');
         });
-        $('body').on('load_page_index', function(a, b) {
+        $('body').on('load_page_index', function(e, page, url) {
             ParticleAPI.updateDevices();
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
                 ParticleAPI.updateDevices();
@@ -25,7 +24,6 @@
             });
 
             $('#addEventPublishButtonPopup').on('popupafterclose', function() {
-                console.log('addEventPublishButtonPopup closed');
                 $('[name=buttonName]').val('');
                 $('[name=eventName]').val('');
                 $('[name=eventData]').val('');
@@ -33,8 +31,6 @@
             });
 
             $('#addEventButton:not(.processed)').addClass('processed').click(function() {
-                console.log("addEventMonitorButton clicked");
-
                 $('#addEventPopup').popup().css({
                     "padding" : "20px"
                 });
@@ -51,8 +47,7 @@
 
         });
 
-        $('body').on('load_page_device', function(a, b) {
-            console.log('device init');
+        $('body').on('load_page_device', function(e, page, url) {
             //TODO: move particle cleanup to some type of unload hook
             if ( typeof ParticleAPI.updatingDevices !== 'undefined') {
                 ParticleAPI.activeRequests.deviceList = false;
@@ -64,24 +59,27 @@
                 window.clearTimeout(ParticleAPI.intervals.deviceList);
                 ParticleAPI.intervals.deviceList = false;
             }
-
-            var device = ParticleAPI.updateDevice(getUrlParameter('deviceid'));
-            if (device.isnew) {
+            // if(isset(ui)){
+                // console.log(ui);
+                // var url=$(ui.toPage).attr('data-url');
+                // console.log(url);
+                // console.log(getUrlParameter('deviceid', url));
+            // }
+            console.log([url, getUrlParameter('deviceid', url)]);
+            var device = ParticleAPI.updateDevice(getUrlParameter('deviceid', url), page);
+            
+            if (!$(device.page).hasClass('processed')) {
                 $('.addButtonPopup', device.page).popup();
                 $('.addButtonPopup', device.page).on('popupafterclose', function() {
-                    console.log("addButtonPopup closed");
                     // $('[name=buttonFunctionList]').val('_none');
                     $('[name=buttonName]', device.page).val('');
                     $('[name=buttonArguments]', device.page).val('');
                 });
                 $('.addButtonButton', device.page).click(function() {
                     //Handle form submit
-                    console.log('add submit handler');
                     // $('[name=buttonFunctionList] option').eq(1).prop('selected', true);
                     $('[name="buttonFunctionList"]', device.page).val($('[name="buttonFunctionList"] option', device.page).eq(1).val()).selectmenu("refresh");
                     $('.addButtonPopup', device.page).removeClass('ui-popup-hidden').popup('open');
-                    console.log("popup called");
-                    console.log($('#addButtonPopup'));
                 });
                 $('.addButtonForm', device.page).submit(function() {
                     var op = $("input[type=submit][clicked=true]", this).val();
@@ -105,26 +103,21 @@
                     select.append(option);
                 });
                 select.selectmenu().selectmenu('refresh', true);
-                device.isnew = false;
+                $(device.page).addClass('processed');
                 // console.log(select);
                 //Handle submit button clicks on forms.  Intercepts prior to form submit
             });
 
         });
         $('body').pagecontainer({
-            change : function(a, b) {
-                if ( typeof b.absUrl == 'undefined') {
-                    var url = b.options.dataUrl;
-                } else {
-                    var url = b.absUrl;
-                }
+            show : function(e, ui) {
+                var url=ui.toPage[0].baseURI;
                 var page = url.replace(/\?.*/, '').split('/').pop().replace('.html', '');
-                if (page == '')
+                if (page == ''){
                     page = 'index';
-                console.log(page);
+                }
                 if (page.length > 0) {
-                    var event = 'load_page_' + page;
-                    $('body').trigger(event, a, b);
+                    $('body').trigger('load_page_' + page, [ui.toPage, url]);
                 }
             },
             beforechange: function(e, ui){
@@ -133,7 +126,6 @@
         });
 
         if ( typeof accessToken == 'undefined' || accessToken == null) {
-            console.log("could not find access token");
             var form = $('<form name="signInForm" id="signInForm" action="https://api.particle.io/oauth/token" method="POST"></form>');
             form.on("submit", function(e) {
                 e.preventDefault();
@@ -145,13 +137,11 @@
                         $('body').pagecontainer('change', '/');
                         window.location.reload(true);
                     } else {
-                        console.log('bad login');
                         var invalidLoginDiv = $('<label style="color: red;">Invalid Login</label>');
                         form.append(invalidLoginDiv);
                     }
 
                 }).fail(function() {
-                    console.log('failed login');
                     var invalidLoginDiv = $('<label>Invalid Login. Please try again.</label>');
                     form.append(invalidLoginDiv);
                 });
@@ -184,17 +174,15 @@
                     formWrapper.popup('open');
                     intCount++;
                 }
-                console.log('STUPID INTERVALS');
             }, 500);
             //formWrapper.popup('open');
 
         } else {
-            console.log("found access token");
             ParticleAPI = new Particle(accessToken);
             var page = window.location.pathname.split('/').pop().replace('.html', '');
             if (page == '')
                 page = 'index';
-            $('body').trigger('load_page_' + page);
+            $('body').trigger('load_page_' + page, [$('body').pagecontainer( "getActivePage" )]);
         }
         $("[data-role='panel']").panel().trigger("create");
         $("[data-role='header'], [data-role='footer']").toolbar();
@@ -215,13 +203,13 @@
             return;
         window.isphone = false;
         if (document.URL.indexOf("http://") === -1 && document.URL.indexOf("https://") === -1) {
-            console.log("Its A Phone!!!");
             window.isphone = true;
         }
 
         if (window.isphone) {
             document.addEventListener("deviceReady", mobileReady, false);
         } else {
+            $('a[href="index.html"]').attr('href', '/');
             window.setTimeout(mobileReady, 50);
 
         }
@@ -273,7 +261,6 @@
         return retVal;
     };
     Particle.prototype.logOut = function() {
-        console.log("Logging out");
         window.localStorage.removeItem('access_token');
         window.location.reload(true);
         $.ready();
@@ -325,12 +312,12 @@
                     if (!li.children('a').length) {
                         li.text('');
                         var hrefLink = $('<a href= device.html?deviceid=' + device.id + '>' + device.name + '</a>').addClass('ui-btn ui-btn-icon-right ui-icon-carat-r');
-                        hrefLink.click(function() {
-                            if(ParticleAPI.eventSource){
-                                ParticleAPI.eventSource.close();
-                                ParticleAPI.eventSource = false;
-                            }
-                        });
+                        // hrefLink.click(function() {
+                            // if(ParticleAPI.eventSource){
+                                // ParticleAPI.eventSource.close();
+                                // ParticleAPI.eventSource = false;
+                            // }
+                        // });
                         hrefLink.text(device.name);
                         li.append(hrefLink).removeClass('ui-li-static').removeClass('ui-body-inherit').addClass('connected');
                     }
@@ -347,7 +334,6 @@
             // ParticleAPI.updateDevices();
             // }, 2000);
         }).fail(function() {
-            console.log('oops update devices');
             window.location = window.location;
         });
     };
@@ -390,7 +376,6 @@
         var li = $('#eventPublishButtonList li[data-button-index="' + i + '"]');
         if (li.length) {
             //We are editing.
-            console.log("editing button");
 
             li.find('a.publisher').text(vals.buttonName).attr('data-eventName', vals.eventName).attr('data-eventData', vals.eventData).attr('data-eventTTL', vals.eventTTL);
 
@@ -443,7 +428,6 @@
         if ($('#deviceEventsList li[data-event-index="'+i+'"]').length) return;
 
         if ( typeof add == 'undefined') {
-            console.log('saving event monitor');
             //Save the events to the device events array.
             p.events[event] = event;
             p.eventMonitor.push(event);
@@ -469,7 +453,6 @@
 
         collapsibleli.mousedown(function() {
             timeoutId = setTimeout(function() {
-                console.log("On Mouse hold");
                 clearTimeout(timeoutId);
                 $('#removeEventPopup').popup().css({
                     padding : '20px'
@@ -478,7 +461,6 @@
                 $('#removeEventForm').submit(function() {
                     if($("input[type=submit][clicked=true]", this).val() == 'remove'){
                         
-                        console.log("removing event: " + event);
                         p.eventMonitor[i]=false;
                         collapsibleli.remove();
                         var json = JSON.stringify(p.eventMonitor);
@@ -503,14 +485,11 @@
     };
 
     Particle.prototype.initializeEvents = function() {
-        console.log(this.events);
         
         var particle=this;
         
-        
         for (var i in this.eventMonitor) {
             var eventString = this.eventMonitor[i];
-            console.log(eventString + ' listener added');
             this.eventSource.addEventListener(eventString, function(e){
                 Particle.prototype.eventHandler.call(particle, e);
             }, false);
@@ -521,7 +500,6 @@
         for(i in this.eventMonitor) eventStrings[this.eventMonitor[i]]=i;
         var eventString = e.type;
         var i=eventStrings[eventString];
-        console.log(eventString + " fired");
         var data = JSON.parse(e.data);
         $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
         $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
@@ -531,24 +509,18 @@
     Particle.prototype.addEventListener = function(i) {
     	
     	var eventString=this.eventMonitor[i];
-        //TODO finish this.
-        console.log("Particle.addEventListener");
-        console.log(this.accessToken);
         var particle = this;
 
         //create event source object if it does not exist already
         if (!particle.eventSource) {
-            console.log('creating source - ' + eventString);
             var eventSubscribeURL = this.baseUrl + "devices/events?access_token=" + this.accessToken;
             particle.eventSource = new EventSource(eventSubscribeURL);
             particle.eventSource.onopen = function() {
                 particle.initializeEvents();
             };
             particle.eventSource.onerror = function() {
-                console.log("error on Server Event Stream");
             };
         } else if (particle.eventSource.readyState == 1) {
-            console.log(eventString + ' listener added');
             this.eventSource.addEventListener(eventString, function(e){
                 particle.eventHandler.call(particle, e);
             }, false);
@@ -567,15 +539,12 @@
             ttl : eventTTL,
             access_token : particle.accessToken
         }).success(function(data) {
-            console.log("Function Return: " + data);
         });
     };
 
     Particle.prototype.removeEventPublishButton = function(vals) {
         //Get instance of device object
         var particle = this;
-        console.log("Delete Button function");
-        console.log(vals);
         //Get instance of LI parent before deleting
         var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
         //Get index of LI so we can reference that index in the buttons array
@@ -591,13 +560,11 @@
         liParent.listview().listview('refresh');
     };
 
-    Particle.prototype.updateDevice = function(deviceID) {
-        if (isset(this.devices[deviceID])) {
-            this.devices[deviceID].update();
-            return this.devices[deviceID];
+    Particle.prototype.updateDevice = function(deviceID, page) {
+        if (!isset(this.devices[deviceID])) {
+            this.devices[deviceID] = new Device(this, deviceID);
         }
-        this.devices[deviceID] = new Device(this, deviceID);
-        this.devices[deviceID].update();
+        this.devices[deviceID].update(page);
         return this.devices[deviceID];
     };
 
@@ -623,7 +590,6 @@
            if(isset(device.updateVariablesRequest)) device.updateVariablesRequest.abort();
            window.clearTimeout(device.updateVaraiablesRequest);
         });
-        this.page = $('body').pagecontainer('getActivePage').get(0);
         this.isnew = true;
     }
 
@@ -643,8 +609,9 @@
         }
     };
 
-    Device.prototype.update = function() {
+    Device.prototype.update = function(page) {
         var device = this;
+        device.page=page;
         this.stop=false;
         $('#overlay').css({
             display : 'block'
@@ -661,7 +628,6 @@
             timeout : 2000,
             url : this.baseUrl + this.urlTail
         }).done(function(data) {
-            console.log(data);
             $('#pagetitle').text(data.name);
             device.data = data;
             device.updateFunctions();
@@ -775,15 +741,12 @@
     };
 
     Device.prototype.addButton = function(vals, add) {
-        console.log(vals);
         var device = this;
         var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
 
         //Check to see if parent list view has child with this id already.  If so we are editing
-        console.log($('.deviceButtonList', device.page).find($('#' + id)));
         if ($('.deviceButtonList', device.page).find($('#' + id)).length) {
             //We are editing.
-            console.log("editing button");
             //Get instance of old LI so we can replace with the new one
             var oldLI = $('#' + id);
             var newLI = $('<li></li>').attr("id", id);
@@ -842,8 +805,6 @@
     Device.prototype.deleteButton = function(vals) {
         //Get instance of device object
         var device = this;
-        console.log("Delete Button function");
-        console.log(vals);
         //Get instance of LI parent before deleting
         var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_'), device.page).parent();
         //Get index of LI so we can reference that index in the buttons array
@@ -885,8 +846,9 @@ function isset(v) {
     return ( typeof v !== 'undefined');
 }
 
-function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+function getUrlParameter(sParam, url) {
+    var url = isset(url)?'?'+url.split('?').pop():window.location.search;
+    var sPageURL = decodeURIComponent(url.substring(1)),
         sURLVariables = sPageURL.split('&'),
         sParameterName,
         i;
