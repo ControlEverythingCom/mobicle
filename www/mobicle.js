@@ -690,7 +690,9 @@
 
     Device.prototype.updateVariables = function() {
         var device = this;
+        var hasVars=false;
         for(var i in this.data.variables) {
+            hasVars=true;
             this.variables.push(i);
             var id = this.id + i;
             if (!$('.deviceVariablesList', device.page).find($('#' + id)).length) {
@@ -698,7 +700,7 @@
             }
         }
 
-        this.updateVariable(0);
+        if(hasVars) this.updateVariable(0);
 
         $('.deviceVariablesList', device.page).listview().listview('refresh');
 
