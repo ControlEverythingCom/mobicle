@@ -9,11 +9,11 @@
                 "parents": {
                     "/*": [
                         {
-                            "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" value=\"org.apache.cordova.statusbar.StatusBar\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
                         },
                         {
-                            "xml": "<feature name=\"StatusBar\"><param name=\"android-package\" value=\"org.apache.cordova.statusbar.StatusBar\" /><param name=\"onload\" value=\"true\" /></feature>",
+                            "xml": "<feature name=\"Whitelist\"><param name=\"android-package\" value=\"org.apache.cordova.whitelist.WhitelistPlugin\" /><param name=\"onload\" value=\"true\" /></feature>",
                             "count": 1
                         }
                     ]
@@ -22,14 +22,14 @@
         }
     },
     "installed_plugins": {
-        "cordova-plugin-whitelist": {
-            "PACKAGE_NAME": "io.andor.particle"
-        },
         "cordova-plugin-console": {
-            "PACKAGE_NAME": "io.andor.particle"
+            "PACKAGE_NAME": "com.controleverything.mobicle"
         },
         "cordova-plugin-statusbar": {
-            "PACKAGE_NAME": "io.andor.particle"
+            "PACKAGE_NAME": "com.controleverything.mobicle"
+        },
+        "cordova-plugin-whitelist": {
+            "PACKAGE_NAME": "com.controleverything.mobicle"
         }
     },
     "dependent_plugins": {}
