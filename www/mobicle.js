@@ -10,6 +10,9 @@
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
                 ParticleAPI.updateDevices();
             });
+            
+            var eventSubscribeURL = ParticleAPI.baseUrl + "devices/events?access_token=" + ParticleAPI.accessToken;
+            ParticleAPI.allEvents(eventSubscribeURL);
             $('#addEventPublishButton:not(.processed)').addClass('processed').click(function() {
                 $('#addEventPublishButtonPopup').popup();
                 //Handle form submit
@@ -65,9 +68,10 @@
                 // console.log(url);
                 // console.log(getUrlParameter('deviceid', url));
             // }
-            console.log([url, getUrlParameter('deviceid', url)]);
             var device = ParticleAPI.updateDevice(getUrlParameter('deviceid', url), page);
-            
+            var eventSubscribeURL = ParticleAPI.baseUrl + "devices/"+device.id+"/events?access_token=" + ParticleAPI.accessToken;
+            console.log(eventSubscribeURL);
+            ParticleAPI.allEvents(eventSubscribeURL);
             if (!$(device.page).hasClass('processed')) {
                 $('.addButtonPopup', device.page).popup();
                 $('.addButtonPopup', device.page).on('popupafterclose', function() {
@@ -839,6 +843,29 @@
         $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
         $(this).attr("clicked", "true");
     });
+    
+    Particle.prototype.allEvents=function(url){
+        var lastEvent='';
+        var oReq = new XMLHttpRequest();
+                var event={};
+        oReq.onreadystatechange = function(){
+            if(this.readyState>2){
+                var recent=this.responseText.replace(lastEvent, '');
+                lastEvent=this.responseText;
+                var parts=recent.split("\n");
+                for(var i=0;i<parts.length;i++){
+                    if(parts[i].indexOf("event:") == 0) event.type = parts[i].replace('event:', '').trim();
+                    else if(parts[i].indexOf("data:") == 0){
+                        event.data = parts[i].replace('data:', '').trim();
+                        console.log(event);
+                    }
+                }
+            }
+        };
+        oReq.open('get', url, true);
+        oReq.send();
+    };
+    
 })(jQuery);
 function logEntry(d, t, v) {
     $('#log').prepend('<li><span class="device-name" style="display:none;">' + d + '</span><span class="activity-type" style="display:none;">' + t + '</span><span class="activity-value">' + v + '</span></li>').listview('refresh');
