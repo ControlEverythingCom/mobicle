@@ -211,6 +211,10 @@
         }
 
         if (window.isphone) {
+        	cordova.plugins.notification.local.schedule({
+        		id : 1,
+        		text: "It Works!"
+        	});
             document.addEventListener("deviceReady", mobileReady, false);
         } else {
             $('a[href="index.html"]').attr('href', '/');
