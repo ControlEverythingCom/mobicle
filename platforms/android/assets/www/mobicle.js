@@ -211,10 +211,6 @@
         }
 
         if (window.isphone) {
-        	cordova.plugins.notification.local.schedule({
-        		id : 1,
-        		text: "It Works!"
-        	});
             document.addEventListener("deviceReady", mobileReady, false);
         } else {
             $('a[href="index.html"]').attr('href', '/');
@@ -260,9 +256,10 @@
         if (!isset(this.eventListeners[e]))
             this.eventListeners[e] = [];
         for (var i in arguments)
-        if (i !== 0)
-            args.push(arguments[i]);
-        $.each(this.eventListeners[e], function(f) {
+        	if (i !== 0)
+            	args.push(arguments[i]);
+        $.each(this.eventListeners[e], function(i,f) {
+        	console.log(f);
             if (f.apply(this, args) === false)
                 retVal = false;
         });
@@ -428,7 +425,28 @@
     Particle.prototype.addEventMonitor = function(i, add) {
         if(typeof(i) !== 'object') var event = this.eventMonitor[i];
         else{
+        	console.log(i.notificationVar);
             var event=i.eventID;
+            var notify = i.checkboxNotify;
+            var notificationVariable = i.notificationVar;
+			if (notify == "on") {
+				var notifyHandler = function(e, event, value) {
+					console.log(event);
+					console.log(value);
+					console.log(notificationVariable);
+					if (value == notificationVariable) {
+						//trigger notification
+						if (window.isphone) {
+							cordova.plugins.notification.local.schedule({
+								id : 1,
+								text : "It Works!"
+							});
+						}
+					}
+				};
+				this.off('eventFire', notifyHandler);
+				this.on('eventFire', notifyHandler);
+			}
             i=this.eventMonitor.length;
         }
         var p = this;
@@ -500,6 +518,7 @@
             var eventString = this.eventMonitor[i];
             this.eventSource.addEventListener(eventString, function(e){
                 Particle.prototype.eventHandler.call(particle, e);
+                
             }, false);
         }
     };
@@ -513,6 +532,7 @@
         $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
         $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
         logEntry('Global', 'event', eventString + ': ' + data.data);
+        this.trigger('eventFire', eventString, data.data);
     };
     Particle.prototype.addEventListener = function(i) {
     	
@@ -539,6 +559,7 @@
 
     Particle.prototype.publishEvent = function(eventName, eventData, eventTTL) {
         //publishEventBaseUrl
+
         var particle = this;
         $.post(particle.publishEventBaseUrl, {
             name : eventName,
