@@ -222,9 +222,11 @@
         this.baseUrl = 'https://api.particle.io/v1/';
         this.publishEventBaseUrl = this.baseUrl + 'devices/events';
         this.accessToken = accessToken;
+        //TODO change eventMonitor to object Array.
+        //eventMonitor Object properties = {id(String), notify(String), notifyVar(String)}
         this.eventMonitor = [];
         this.eventPublish = [];
-        this.events = {};
+        // this.events = {};
         this.eventSource = false;
         this.intervals = {
             deviceList : false
@@ -259,7 +261,7 @@
         	if (i !== 0)
             	args.push(arguments[i]);
         $.each(this.eventListeners[e], function(i,f) {
-        	console.log(f);
+        	// console.log(f);
             if (f.apply(this, args) === false)
                 retVal = false;
         });
@@ -423,51 +425,60 @@
     };
 
     Particle.prototype.addEventMonitor = function(i, add) {
-        if(typeof(i) !== 'object') var event = this.eventMonitor[i];
-        else{
-        	console.log(i.notificationVar);
-            var event=i.eventID;
-            var notify = i.checkboxNotify;
-            var notificationVariable = i.notificationVar;
-			if (notify == "on") {
-				var notifyHandler = function(e, event, value) {
-					console.log(event);
-					console.log(value);
-					console.log(notificationVariable);
-					if (value == notificationVariable) {
-						//trigger notification
-						if (window.isphone) {
-							cordova.plugins.notification.local.schedule({
-								id : 1,
-								text : "It Works!"
-							});
-						}
-					}
-				};
-				this.off('eventFire', notifyHandler);
-				this.on('eventFire', notifyHandler);
-			}
-            i=this.eventMonitor.length;
+    	//This came from initStorage
+        if(typeof(i) !== 'object'){
+        	var event = this.eventMonitor[i];
+        	console.log(event);
         }
+        //This came from add new event popup.
+        else{
+        	var event = {};
+			event.id = i.eventID;
+			event.notify = i.checkboxNotify;
+			event.notifyVar = i.notificationVar;
+        } 
+
+		
+		if (event.notify == "on") {
+			var notifyHandler = function(e, event, value) {
+				console.log('value: '+value);
+				console.log('event: '+event);
+				if (value == event.notifyVar) {
+					//trigger notification
+					if (window.isphone) {
+						cordova.plugins.notification.local.schedule({
+							id : 1,
+							text : event.id+": "+event.notifyVar
+						});
+					}
+				}
+			};
+			this.off('eventFire', notifyHandler);
+			this.on('eventFire', notifyHandler);
+		}
+
         var p = this;
         //Check to see if the event already exists.  If so return
         if ($('#deviceEventsList li[data-event-index="'+i+'"]').length) return;
 
         if ( typeof add == 'undefined') {
             //Save the events to the device events array.
-            p.events[event] = event;
+            // p.events[event] = event;
+            //TODO check this to be sure it still works after eventMonitor converted to Object Array.
             p.eventMonitor.push(event);
             var json = JSON.stringify(p.eventMonitor);
+            console.log('json strigified eventMonitor: ');
+            console.log(json);
             window.localStorage.setItem('event_monitors', json);
         }
         //Create the li an list view for the new event
         var collapsibleli = $('<li data-role="collapsible" data-iconpos="right" data-shadow="false" class ="ui-collapsible ui-collapsible-inset ui-collapsible-themed-content ui-collapsible-collapsed" data-corners="false"></li>').css({
             "padding" : "0px"
-        }).attr('data-event-index', i).attr('data-event-id', event);
+        }).attr('data-event-index', i).attr('data-event-id', event.id);
 
-        var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event).css('margin', '0px').appendTo(collapsibleli);
+        var h2 = $('<h2 class="ui-collapsible-heading" data-corners="false"></h2>').text(event.id).css('margin', '0px').appendTo(collapsibleli);
 
-        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event + "-list").listview();
+        var ul = $('<ul data-role="listview" data-corners="false"></ul>').attr("id", event.id + "-list").listview();
         collapsibleli.append(ul).appendTo($('#deviceEventsList')).collapsible({
             refresh : true
         });
@@ -483,13 +494,16 @@
                 $('#removeEventPopup').popup().css({
                     padding : '20px'
                 });
-                $('#eventID').text(event);
+                $('#eventID').text(event.id);
                 $('#removeEventForm').submit(function() {
                     if($("input[type=submit][clicked=true]", this).val() == 'remove'){
                         
                         p.eventMonitor[i]=false;
                         collapsibleli.remove();
+                        //TODO check to make sure this still works after eventMonitor is converted to an object array
                         var json = JSON.stringify(p.eventMonitor);
+                        console.log('json strigified eventMonitor: ');
+            			console.log(json);
                         window.localStorage.setItem('event_monitors', json);
                         $('#deviceEventsList').listview().listview('refresh');
                     }
@@ -515,7 +529,8 @@
         var particle=this;
         
         for (var i in this.eventMonitor) {
-            var eventString = this.eventMonitor[i];
+        	//TODO change eventString to reference eventMonitor object id property.
+            var eventString = this.eventMonitor[i].id;
             this.eventSource.addEventListener(eventString, function(e){
                 Particle.prototype.eventHandler.call(particle, e);
                 
@@ -523,20 +538,31 @@
         }
     };
     Particle.prototype.eventHandler=function(e){
+    	console.log('eventHandler');
+    	console.log(e);
         var eventStrings={};
-        for(i in this.eventMonitor) eventStrings[this.eventMonitor[i]]=i;
+        var event;
+        //TODO change eventString to reference eventMonitor object id property.
+        for(i in this.eventMonitor){
+        	eventStrings[this.eventMonitor[i].id]=i;
+        	event = this.eventMonitor[i];
+        	console.log(this.eventMonitor[i]);
+        } 
         var eventString = e.type;
         var i=eventStrings[eventString];
         var data = JSON.parse(e.data);
+        //Create li to add to collapsable list view
         $('<li></li>').text(eventString + ": " + data.data).appendTo($('#' + eventString + '-list'));
+        //Update header row text for collapsable list view
         $('#deviceEventsList li[data-event-index="'+i+'"] h2 a').text(eventString + ' - Last Reported Value: ' + data.data);
         $('#deviceEventsList li[data-event-index="'+i+'"] list').listview().listview('refresh');
         logEntry('Global', 'event', eventString + ': ' + data.data);
-        this.trigger('eventFire', eventString, data.data);
+        this.trigger('eventFire', event, data.data);
     };
     Particle.prototype.addEventListener = function(i) {
-    	
-    	var eventString=this.eventMonitor[i];
+    	//TODO change eventString to reference eventMonitor object id property.
+    	console.log(i);
+    	var eventString=i.id;
         var particle = this;
 
         //create event source object if it does not exist already
@@ -606,7 +632,7 @@
         this.isLoaded = false;
         this.buttons = [];
         this.eventButtons = [];
-        this.events = {};
+        // this.events = {};
         this.functions = [];
         this.variables = [];
         currentDevice = this;
