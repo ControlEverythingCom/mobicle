@@ -54,7 +54,7 @@
       </dict>
     </dict>
     <key>CFBundleIdentifier</key>
-    <string>io.andor.particle</string>
+    <string>com.controleverything.mobicle</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
