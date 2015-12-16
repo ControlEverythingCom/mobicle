@@ -59,6 +59,7 @@ module.exports.metadata =
     "cordova-plugin-console": "1.0.1",
     "cordova-plugin-statusbar": "1.0.1",
     "de.appplant.cordova.plugin.local-notification": "0.8.2",
+    "com.red_folder.phonegap.plugin.backgroundservice": "2.0.0",
     "cordova-plugin-device": "1.1.0",
     "de.appplant.cordova.common.registerusernotificationsettings": "1.0.1"
 }

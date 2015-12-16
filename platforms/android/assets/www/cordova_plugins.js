@@ -51,6 +51,10 @@ module.exports = [
         ]
     },
     {
+        "file": "plugins/com.red_folder.phonegap.plugin.backgroundservice/www/backgroundService.js",
+        "id": "com.red_folder.phonegap.plugin.backgroundservice.BackgroundService"
+    },
+    {
         "file": "plugins/cordova-plugin-device/www/device.js",
         "id": "cordova-plugin-device.device",
         "clobbers": [
@@ -65,6 +69,7 @@ module.exports.metadata =
     "cordova-plugin-statusbar": "1.0.1",
     "cordova-plugin-whitelist": "1.1.0",
     "de.appplant.cordova.plugin.local-notification": "0.8.2",
+    "com.red_folder.phonegap.plugin.backgroundservice": "2.0.0",
     "cordova-plugin-device": "1.1.0"
 }
 // BOTTOM OF METADATA

@@ -23,6 +23,10 @@
                         {
                             "xml": "<feature name=\"LocalNotification\"><param name=\"android-package\" value=\"de.appplant.cordova.plugin.localnotification.LocalNotification\" /></feature>",
                             "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"BackgroundServicePlugin\"><param name=\"android-package\" value=\"com.red_folder.phonegap.plugin.backgroundservice.BackgroundServicePlugin\" /></feature>",
+                            "count": 1
                         }
                     ]
                 }
@@ -57,15 +61,19 @@
                         {
                             "xml": "<activity android:exported=\"false\" android:launchMode=\"singleInstance\" android:name=\"de.appplant.cordova.plugin.notification.ClickActivity\" android:theme=\"@android:style/Theme.NoDisplay\" />",
                             "count": 1
+                        },
+                        {
+                            "xml": "<receiver android:name=\"com.red_folder.phonegap.plugin.backgroundservice.BootReceiver\"><intent-filter><action android:name=\"android.intent.action.BOOT_COMPLETED\" /></intent-filter></receiver>",
+                            "count": 1
                         }
                     ],
                     "/manifest": [
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
                             "count": 1
                         },
                         {
-                            "xml": "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />",
+                            "xml": "<uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />",
                             "count": 1
                         }
                     ]
@@ -84,6 +92,9 @@
             "PACKAGE_NAME": "com.controleverything.mobicle"
         },
         "de.appplant.cordova.plugin.local-notification": {
+            "PACKAGE_NAME": "com.controleverything.mobicle"
+        },
+        "com.red_folder.phonegap.plugin.backgroundservice": {
             "PACKAGE_NAME": "com.controleverything.mobicle"
         }
     },

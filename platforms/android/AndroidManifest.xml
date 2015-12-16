@@ -22,8 +22,18 @@
             </intent-filter>
         </receiver>
         <activity android:exported="false" android:launchMode="singleInstance" android:name="de.appplant.cordova.plugin.notification.ClickActivity" android:theme="@android:style/Theme.NoDisplay" />
+        <receiver android:name="com.red_folder.phonegap.plugin.backgroundservice.BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <service android:name="com.red_folder.phonegap.plugin.backgroundservice.MyService">
+            <intent-filter>
+                <action android:name="com.red_folder.phonegap.plugin.backgroundservice.MyService" />
+            </intent-filter>
+        </service>
     </application>
     <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="22" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 </manifest>

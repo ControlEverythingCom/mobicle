@@ -46,6 +46,9 @@
         },
         "de.appplant.cordova.plugin.local-notification": {
             "PACKAGE_NAME": "io.andor.particle"
+        },
+        "com.red_folder.phonegap.plugin.backgroundservice": {
+            "PACKAGE_NAME": "com.controleverything.mobicle"
         }
     },
     "dependent_plugins": {

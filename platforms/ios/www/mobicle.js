@@ -2,6 +2,7 @@
     var mobileReady = function() {
         var ParticleAPI = null;
         var accessToken = window.localStorage.getItem('access_token');
+        //Sample Background service.
         $('body').on('load_page_about', function(e, page, url) {
             $('#pagetitle').text('About Mobicle');
         });
@@ -201,7 +202,8 @@
             window.localStorage.clear();
             window.location.reload(true);
         });
-    };
+    };    
+    
     $(document).ready(function() {
         if ( typeof window.isphone !== 'undefined')
             return;
@@ -218,6 +220,82 @@
 
         }
     });
+    
+	function getStatus() {
+		myService.getStatus(function(r) {
+			displayResult(r);
+		}, function(e) {
+			displayError(e);
+		});
+	}
+
+	function displayResult(data) {
+		alert("Is service running: " + data.ServiceRunning);
+	}
+
+	function displayError(data) {
+		alert("We have an error");
+	}    
+	
+	function updateHandler(data) {
+		if (data.LatestResult != null) {
+			try {
+				var resultMessage = document.getElementById("resultMessage");
+				// if (window.isphone) {
+						// cordova.plugins.notification.local.schedule({
+							// id : 1,
+							// text : 'It works: '+": "+data.LatestResult.Message
+						// });
+					// }
+				resultMessage.innerHTML = data.LatestResult.Message;
+			} catch (err) {
+			}
+		}
+	}
+
+	function go() {
+		myService.getStatus(function(r) {
+			startService(r);
+		}, function(e) {
+			displayError(e);
+		});
+	};
+
+	function startService(data) {
+		if (data.ServiceRunning) {
+			enableTimer(data);
+		} else {
+			myService.startService(function(r) {
+				enableTimer(r);
+			}, function(e) {
+				displayError(e);
+			});
+		}
+	}
+
+	function enableTimer(data) {
+		if (data.TimerEnabled) {
+			registerForUpdates(data);
+		} else {
+			myService.enableTimer(10000, function(r) {
+				registerForUpdates(r);
+			}, function(e) {
+				displayError(e);
+			});
+		}
+	}
+
+	function registerForUpdates(data) {
+		if (!data.RegisteredForUpdates) {
+			myService.registerForUpdates(function(r) {
+				updateHandler(r);
+			}, function(e) {
+				handleError(e);
+			});
+		}
+	}
+
+   
     function Particle(accessToken) {
         this.baseUrl = 'https://api.particle.io/v1/';
         this.publishEventBaseUrl = this.baseUrl + 'devices/events';
@@ -585,7 +663,14 @@
 
     Particle.prototype.publishEvent = function(eventName, eventData, eventTTL) {
         //publishEventBaseUrl
-
+		//TODO finish this test
+		if(window.isphone){
+			console.log("starting service");
+			var serviceName = 'com.red_folder.phonegap.plugin.backgroundservice.MyService';
+      		var factory = cordova.require('com.red_folder.phonegap.plugin.backgroundservice.BackgroundService');
+      		myService = factory.create(serviceName);
+      		go();
+		}
         var particle = this;
         $.post(particle.publishEventBaseUrl, {
             name : eventName,
