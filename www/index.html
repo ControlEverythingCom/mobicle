@@ -16,6 +16,8 @@
         <script type="text/javascript" src="mobicle.inc.js"></script>
         <script type="text/javascript" src="mobicle.api.js"></script>
         <script type="text/javascript" src="mobicle.ui.js"></script>
+        <script type="text/javascript" src="mobicle.storage.js"></script>
+        <script type="text/javascript" src="mobicle.theme.js"></script>
         <script type="text/javascript" src="cordova.js"></script>
     </head>
     <body class="ui-page-theme-a">
@@ -25,7 +27,7 @@
             </div>
             <div data-role="collapsible-set">
                 <div>
-                    <a data-role="button" href="index.html">Device List</a>
+                    <a data-role="button" href="#home">Device List</a>
                 </div>
                 <div data-role="collapsible">
                     <h2>Activity Log</h2>
@@ -45,7 +47,7 @@
             <h1 id="pagetitle">Device List</h1>
             <a href="" id="refreshbutton" data-role="button" data-icon="refresh" data-iconpos="notext" class="ui-btn-right"></a>
         </div>
-        <div data-role="page">
+        <div data-url="index.html" data-role="page" data-dom-cache="true" id="home">
 
             <div data-role="content">
                 <ul data-role="listview" id="deviceListView" data-inset="true" style="margin-right: 8px;margin-left: 8px">
@@ -144,6 +146,105 @@
                         </ul>
                     </form>
                 </div>
+            </div>
+        </div>"
+        <div data-role="page" id="device">
+
+            <div data-role="content">
+                <ul data-role="listview" class="deviceButtonList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Buttons
+                        <div class="addButtonButton ui-btn-icon-notext ui-icon-plus" style="float:right;position: relative;">
+                        </div>
+                    </li>
+                    <!-- <li id="addButtonWrapper"><a href="#addButtonPopup" data-rel="popup">Add Button</a></li> -->
+                </ul>
+                <ul data-role="listview" class="deviceVariablesList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Variables
+                    </li>
+                </ul>
+                <ul data-role="listview" class="deviceFunctionList" data-inset="true" style="margin-right: 8px;margin-left: 8px">
+                    <li data-role="list-divider">
+                        Functions
+                    </li>
+                </ul>
+                <div data-role="popup" data-history="false" class="addButtonPopup" data-position-to="window" style="padding: 20px">
+                    <div data-role="header" class="ui-corner-all">
+                        <h1 role="heading" style="margin: 0">Add Button</h1>
+                    </div>
+                    <br>
+                    <form class="addButtonForm">
+
+                        <ul data-role="listview" data-inset="true" >
+                            <li>
+                                <label>Function</label>
+                                <select class="buttonFunctionList" name="buttonFunctionList">
+                                    <option value="_none">Select a Function</option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>Name of Button</label>
+                                <input name="buttonName" type="text" />
+                            </li>
+                            <li>
+                                <label>Arguments</label>
+                                <input name="buttonArguments" type="text" />
+                            </li>
+                            <li>
+                                <input type="submit" value="submit" />
+                            </li>
+                            <li>
+                                <input type="submit" value="delete" />
+                            </li>
+                            <li>
+                                <input type="submit" value="cancel" />
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+                <div data-role="popup" data-history="false" class="callFunctionPopup" data-position-to="window">
+                    <div data-role="header" class = "ui-corner-all">
+                        <h1 role="heading" style="margin:0">Call Function</h1>
+                    </div>
+                    <br>
+                    <ul data-role="listview" data-inset="true">
+                        <li>
+                            <label>Argument</label>
+                            <input name="functionArgument" type="text">
+                            </input>
+                        </li>
+                        <li>
+                            <button class="ui-btn ui-corner-all ui-shadow callFunctionConfirm" style="float:left">
+                                Send
+                            </button>
+                            <button class="ui-btn ui-corner-all ui-shadow callFunctionCancel" style="float:right">
+                                Cancel
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div data-role="page" id="about">
+            <div data-role="content">
+                <h3>What is Mobicle?</h3>
+
+                <p>Mobicle is a web based application built to interface with your Particle module through Particle’s cloud.  Mobicle is built on the cordova framework which lends itself well to many platforms including Android, iOS, Web Browsers, Windows, Blackberry, WEBOS, etc.</p>
+                
+                <h3>What does Mobicle do?</h3>
+                
+                <p>Mobicle allows the user to call functions on Particle devices, monitor published events, monitor device variables, and publish events which devices can subscribe to.  We will continue to add features to Mobicle making it more robust to the user.</p>
+                
+                <h3>Mobicle is open source?</h3>
+                
+                <p>Want to rebrand the application for your own use, change the layout of the UI, add functionality not currently available?  Fork the application from our GitHub repo and make any changes you want for personal or commercial use.  
+                Be our friend and contribute to the project. Rest assured your efforts will not be in vain.</p>
+                
+                <h3>Why do it for free?</h3>
+                
+                <p>Yes, Mobicle is free. We want everyone to have it. ControlEverything.com designed Mobicle as a way to give back to the Particle community. It does also give users a simple and consice interface to ControlEverything.com hardware but is by no means only compatible with our hardware.  It is very open and can be used to call functions, monitor events and variables through any firmware running on a Particle device.  Write your own firmware on the Particle module and interface to it through Particle’s cloud using Mobicle.  
+                Oh yeah and have fun!</p>
             </div>
         </div>
         <div data-role="footer" data-position="fixed" data-tap-toggle="false">

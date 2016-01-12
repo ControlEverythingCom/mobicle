@@ -1,15 +1,40 @@
+
+//Simple singleton to make testing easier
+function API(){
+    if(typeof myApi === 'undefined') myApi=new Particle();
+    return myApi;
+}
 (function($){
     Particle=function(accessToken) {
+        this.theme=new ParticleTheme();
         this.baseUrl = 'https://api.particle.io/';
         this.apiVersion = 'v1';
         this.accessToken = isset(accessToken)?accessToken:false;
-        this.data={};
+        this.devices={};
+        this.streams={};
+        $(document).trigger("ParticleCreate", this);
     };
+    
+    /*
+     * Event handler methods
+     */
     Particle.prototype.on = function(e, c) {
-        this.eventListeners = this.eventListeners || {};
-        if (!isset(this.eventListeners[e]))
-            this.eventListeners[e] = [];
-        this.eventListeners[e].push(c);
+        var api=this;
+        if(e.constructor === Object){
+            $.each(e, function(k, v){
+                api.on(k, v); 
+            });
+        }else if(e.indexOf(' ')>-1){
+            $.each(e.split(' '), function(k,v){
+                api.on(v, c);
+            });
+        }else{
+            this.eventListeners = this.eventListeners || {};
+            if (!isset(this.eventListeners[e]))
+                this.eventListeners[e] = [];
+            this.eventListeners[e].push(c);
+        }
+        return this;
     };
     Particle.prototype.off = function(e, c) {
         this.eventListeners = this.eventListeners || {};
@@ -18,6 +43,7 @@
         this.eventListeners[e] = $.grep(this.eventListeners[e], function(v) {
             return (v !== c);
         });
+        return this;
     };
     Particle.prototype.trigger = function() {
         this.eventListeners = this.eventListeners || {};
@@ -29,29 +55,21 @@
         for (var i in arguments)
         if (i !== 0)
             args.push(arguments[i]);
-        $.each(this.eventListeners[e], function(f) {
+        $.each(this.eventListeners[e], function(k, f) {
             if (f.apply(this, args) === false)
                 retVal = false;
         });
         return retVal;
     };
-    Particle.prototype.save=function(){
-        if(this.accessToken){
-            var json=JSON.stringify(this);
-            window.localStorage.setItem('Particle_access_token', this.accessToken);
-            window.localStorage.setItem('Particle_'+this.accessToken, json);
-        }
-    };
-    Particle.prototype.get=function(accessToken){
-        return window.localStorage.getItem('Particle_'+accessToken);
-    };
+    
     Particle.prototype.commands={
         
       //Token commands
       tokenCreate:{
           type: 'post',
           path: 'oauth/token',
-          args: {client_id:'particle', client_secret: 'particle', grant_type: 'password', username: 'particle_username', password: 'particle_password'}
+          args: {client_id:'particle', client_secret: 'particle', grant_type: 'password', username: 'particle_username', password: 'particle_password'},
+          ui_disable: true
       },
       tokenList:{
           type: 'get',
@@ -62,33 +80,38 @@
           type: 'delete',
           path: 'access_tokens/:token',
           api: true,
-          path_args: ['token']
+          path_args: ['token'],
+          ui_disable: true
       },
       
       //Device commands
       deviceList:{
           type:'get',
           api:true,
-          path:'devices'
+          path:'devices',
+          ui_disable: true
       },
       deviceFetch:{
           type:'get',
           api:true,
           path:'devices/:device_id',
-          path_args:['device_id']
+          path_args:['device_id'],
+          ui_disable: true
       },
       deviceUpdate:{
           type:'put',
           api:true,
           path:'devices/:device_id',
-          path_args:['device_id']
+          path_args:['device_id'],
+          ui_disable: true
       },
       deviceRename:{
           type:'put',
           api:true,
           path:'devices/:device_id',
           path_args:['device_id'],
-          //args: {name:'new_name'}
+          //args: {name:'new_name'},
+          ui_disable: true
       },
       
       //Claim commands
@@ -120,8 +143,9 @@
           type:'post',
           api:true,
           path:'devices/:device_id/:function_name',
-          path_args:['device_id', 'function_name']
-          //args: {arg: 'argument for function', format: 'raw'}
+          path_args:['device_id', 'function_name'],
+          //args: {arg: 'argument for function', format: 'raw'},
+          ui_disable: true
       },
       
       //Events
@@ -147,18 +171,23 @@
     };
     
     //API helper functions
-    Particle.prototype.parseEvents=function(response){
-        var events=[];
+    Particle.prototype.parseEvents=function(response, xhr){
         var lines=response.split("\n");
+        var thisEvent={};
         for(var i=0;i<lines.length;i++){
-            if(lines[i].substr(0, lines[i].indexOf(':'))=='data'){
-                events.push({
-                   name: lines[i-1].split(':')[1].trim(),
-                   data: $.parseJSON(lines[i].substr(lines[i].indexOf(':')+1).trim())
-                });
-            }
+            var delimeterPos=lines[i].indexOf(':');
+            switch(lines[i].substr(0, delimeterPos)){
+                case 'data':
+                    thisEvent.data=$.parseJSON(lines[i].substr(delimeterPos+1).trim());
+                    if(!isset(thisEvent.name)) thisEvent.name=xhr.lastEvent.name;
+                    break;
+                case 'event':
+                    thisEvent.name=lines[i].substr(delimeterPos+1).trim();
+                    break;
+            };
         }
-        return events;
+        xhr.lastEvent=thisEvent;
+        if(isset(thisEvent.data) && isset(thisEvent.name)) return xhr.lastEvent;
     };
     
     Particle.prototype.do=function(){
@@ -179,13 +208,26 @@
         if(isset(this.commands[command].args)) args[0]=$.extend(this.commands[command].args, args[0]);
         base_url+=this.commands[command].path;
         if(isset(this.commands[command].path_args)){
-            for(var i in this.commands[command].path_args) base_url=base_url.replace(':'+i, args[0][i]);
+            for(var i in this.commands[command].path_args){
+                var key=this.commands[command].path_args[i];
+                base_url=base_url.replace(':'+key, args[0][key]);
+                delete args[0][key];
+            }
         }
         $.support.cors = true;
         switch(this.commands[command].type){
             case 'post':
             case 'get':
             case 'delete':
+            case 'put': 
+            
+                if(this.commands[command].ui_disabled){
+                    $("body").addClass('ui-disabled');
+                    $.mobile.loading("show",{
+                        text: command,
+                        textVisible: true
+                    });
+                }
                 $.ajax({
                     type: this.commands[command].type.toUpperCase(),
                     url: base_url,
@@ -193,14 +235,23 @@
                     crossDomain: true,
                 }).done(function(data, status, xhr){
                     if(isset(args[1])) args[1](data, status, xhr);
+                    api.trigger(command, data, status, xhr);
+                }).fail(function(xhr, status, error){
+                    api.trigger(command+'_fail', xhr, status, error);
                 }).always(function(data, status, error){
-                    api.trigger(command, data, status, error);
+                    
+                    $.mobile.loading("hide");
+                    $("body").removeClass('ui-disabled');
                 });
                 break;
             case 'eventStream':
                 base_url+='?'+$.param(args[0]);
-                eventStream(base_url, function(data){
-                    if(isset(api.commands[command].parser)) var response=api[api.commands[command].parser](data);
+                
+                if(isset(this.streams[base_url])) return;
+                this.streams[base_url]=true;
+                
+                eventStream(base_url, function(data, xhr){
+                    if(isset(api.commands[command].parser)) var response=api[api.commands[command].parser](data, xhr);
                     else var response=data;
                     if(isset(args[1])) args[1](response);
                     api.trigger(command, response);
@@ -219,13 +270,7 @@
         var api=this;
         this.do('tokenDelete', {token: this.accessToken},function(data){if(data.ok) api.accessToken=false;});
     };
-    Particle.prototype.updateDevices = function() {
-        var api=this;
-        this.do('deviceList', {}, function(data){
-           api.devices={};
-           for(var i in data) api.devices[data[i].id]=new Device(api, data[i].id, data[i]); 
-        });
-    };
+    
     Particle.prototype.updateEvents = function(deviceid){
         var api=this;
         if(isset(deviceid)) this.do('eventsFetchDevice', {device_id:deviceid}, function(data){});
@@ -235,19 +280,43 @@
     Particle.prototype.publishEvent = function(eventName, eventData, eventTTL) {
         this.do('eventPublish', {name:eventName, data:eventData, ttl:eventTTL});
     };
-
+    Particle.prototype.updateDevices = function() {
+        var api=this;
+        this.do('deviceList', {}, function(data){
+           var old_devices=api.devices || {};
+           api.devices={};
+           for(var i in data){
+               api.devices[data[i].id]=new Device(api, data[i].id, data[i]);
+               api.trigger('deviceFetch', data[i]);
+               if(isset(old_devices[data[i].id])) delete old_devices[data[i].id];
+           }
+           for(var i in old_devices){
+               api.trigger('deviceRemove', old_devices[i]);
+           }
+        });
+    };
     Particle.prototype.updateDevice = function(deviceID) {
         if (!isset(this.devices[deviceID])) {
             this.devices[deviceID] = new Device(this, deviceID);
+            this.trigger('deviceFetch', this.devices[deviceID]);
         }else{
             this.devices[deviceID].fetchSelf();
         }
+    };
+    Particle.prototype.renameDevice = function(deviceId, name){
+        var api=this;
+        this.do('deviceRename', {device_id:deviceId, name:name}, function(){
+            api.updateDevice(deviceId);
+        });
+    };
+    Particle.prototype.setTheme = function(theme){
+        this.theme=theme;
     };
     Device=function(api, deviceID, deviceObj){
         this.api=api;
         this.id=deviceID;
         if(isset(deviceObj)){
-            for(var i;i<deviceObj.length;i++) this[i]=deviceObj[i];
+            for(var i in deviceObj) this[i]=deviceObj[i];
         }else{
             this.fetchSelf();
         }
@@ -255,7 +324,7 @@
     Device.prototype.fetchSelf=function(){
         var device=this;
         this.api.do('deviceFetch', {device_id:this.id}, function(data){
-            for(var i;i<data.length;i++) device[i]=data[i];
+            for(var i in data) device[i]=data[i];
         });
     };
 })(jQuery);
