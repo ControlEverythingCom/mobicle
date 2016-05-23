@@ -10,16 +10,20 @@
             $('#refreshbutton:not(.processed)').addClass('processed').click(function() {
                 ParticleAPI.updateDevices();
             });
-            
-            var eventSubscribeURL = ParticleAPI.baseUrl + "devices/events?access_token=" + ParticleAPI.accessToken;
-            ParticleAPI.allEvents(eventSubscribeURL);
             $('#addEventPublishButton:not(.processed)').addClass('processed').click(function() {
                 $('#addEventPublishButtonPopup').popup();
                 //Handle form submit
                 $('#addEventPublishButtonForm').addClass('addEventPublishButtonForm');
                 $('#addEventPublishButtonForm:not(.processed)').addClass('processed').submit(function() {
-                    if ($("input[type=submit][clicked=true]", this).val() == 'submit')
+                    var op = $("input[type=submit][clicked=true]").val();
+                    switch(op) {
+                    case "submit":
                         ParticleAPI.addEventButton($(this).getValues());
+                        break;
+                    case "delete":
+                        ParticleAPI.removeEventPublishButton($(this).attr('data-event-index'));
+                        break;
+                    }
                     $('#addEventPublishButtonPopup').popup('close');
                     return false;
                 });
@@ -68,10 +72,9 @@
                 // console.log(url);
                 // console.log(getUrlParameter('deviceid', url));
             // }
+            console.log([url, getUrlParameter('deviceid', url)]);
             var device = ParticleAPI.updateDevice(getUrlParameter('deviceid', url), page);
-            var eventSubscribeURL = ParticleAPI.baseUrl + "devices/"+device.id+"/events?access_token=" + ParticleAPI.accessToken;
-            console.log(eventSubscribeURL);
-            ParticleAPI.allEvents(eventSubscribeURL);
+            
             if (!$(device.page).hasClass('processed')) {
                 $('.addButtonPopup', device.page).popup();
                 $('.addButtonPopup', device.page).on('popupafterclose', function() {
@@ -403,8 +406,7 @@
                         particle.addEventButton($(this).getValues(), i);
                         break;
                     case "delete":
-                        li.remove();
-                        particle.eventPublish[i] = false;
+                        particle.removeEventPublishButton(i);
                         break;
                     }
                     $('#addEventPublishButtonPopup').popup('close');
@@ -412,8 +414,8 @@
                 });
                 $.each(vals, function(n, v) {
                     $('#addEventPublishButtonForm [name=' + n + ']').val(v);
-
                 });
+                $('#addEventPublishButtonForm').attr('data-event-index', i);
                 $('#addEventPublishButtonPopup').popup('open');
             });
             $('#eventPublishButtonList').append(li);
@@ -546,22 +548,19 @@
         });
     };
 
-    Particle.prototype.removeEventPublishButton = function(vals) {
+    Particle.prototype.removeEventPublishButton = function(i) {
         //Get instance of device object
         var particle = this;
-        //Get instance of LI parent before deleting
-        var liParent = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).parent();
-        //Get index of LI so we can reference that index in the buttons array
-        var liIndex = $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).index() - 1;
-        //Remove the LI from the view
-        $('#' + vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_')).remove();
-        //Remove button from array
-        particle.eventPublish.splice(liIndex, 1);
+        var li = $('li[data-button-index='+i+']');
+        console.log([li,i]);
+        li.remove();
+                
+        particle.eventPublish.splice(i, 1);
         //Save array
         var json = JSON.stringify(particle.eventPublish);
         window.localStorage.setItem('event_publish_buttons', json);
         //refresh button list view
-        liParent.listview().listview('refresh');
+        li.parent().listview().listview('refresh');
     };
 
     Particle.prototype.updateDevice = function(deviceID, page) {
@@ -843,29 +842,6 @@
         $("input[type=submit]", $(this).parents("form")).removeAttr("clicked");
         $(this).attr("clicked", "true");
     });
-    
-    Particle.prototype.allEvents=function(url){
-        var lastEvent='';
-        var oReq = new XMLHttpRequest();
-                var event={};
-        oReq.onreadystatechange = function(){
-            if(this.readyState>2){
-                var recent=this.responseText.replace(lastEvent, '');
-                lastEvent=this.responseText;
-                var parts=recent.split("\n");
-                for(var i=0;i<parts.length;i++){
-                    if(parts[i].indexOf("event:") == 0) event.type = parts[i].replace('event:', '').trim();
-                    else if(parts[i].indexOf("data:") == 0){
-                        event.data = parts[i].replace('data:', '').trim();
-                        console.log(event);
-                    }
-                }
-            }
-        };
-        oReq.open('get', url, true);
-        oReq.send();
-    };
-    
 })(jQuery);
 function logEntry(d, t, v) {
     $('#log').prepend('<li><span class="device-name" style="display:none;">' + d + '</span><span class="activity-type" style="display:none;">' + t + '</span><span class="activity-value">' + v + '</span></li>').listview('refresh');
