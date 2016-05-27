@@ -341,7 +341,7 @@
             // ParticleAPI.updateDevices();
             // }, 2000);
         }).fail(function() {
-            window.location = window.location;
+            ParticleAPI.logOut();
         });
     };
 
@@ -552,7 +552,6 @@
         //Get instance of device object
         var particle = this;
         var li = $('li[data-button-index='+i+']');
-        console.log([li,i]);
         li.remove();
                 
         particle.eventPublish.splice(i, 1);
@@ -649,13 +648,7 @@
             });
             $.mobile.loading("hide");
         }).fail(function() {
-            // window.location = window.location;
-            // device.update();
-            $('body').pagecontainer('change', '/');
-            $('#overlay').css({
-                display : 'none'
-            });
-            $.mobile.loading("hide");
+            device.api.logOut();
         });
     };
 
