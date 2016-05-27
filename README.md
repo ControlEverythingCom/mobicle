@@ -1,4 +1,4 @@
-[![Mobicle](icon.png)](http://mobicle.io)
+>If you've been here before, please check out the [updates](#updates-and-the-future-of-mobicle)
 
 ###What is Mobicle
 >Particle created an amazing product(Spark-Core/Photon/Electron) which builds upon the Arduino architecture bringing cloud capabilities to the platform.  Particle served up IOT capabilities on a silver platter to Arduino users and in doing so made IOT something the average hobbyist/developer could easily digest.  It is a true game changer.  However, one missing link, we felt, has been an interface UI for controlling and monitoring those IOT devices you have worked so hard to create.  That is what Mobicle is all about.
@@ -17,6 +17,11 @@ Be our friend and contribute to the project. Rest assured your efforts will not 
 Oh yeah and have fun!
 [Click here to try it right now from your browser!](http://mobicle.io)
 
-###Mobile
-Mobicle will soon be added to the iOS app store and Google Play.
+###Updates and the Future of Mobicle
+>The existing version of Mobicle that is available through [mobicle.io](http://mobicle.io) is now sunset. This does not mean we will remove access to it, it just means there is a feature freeze. We've decided to do this for 2 reasons:
+ - First of all, a newer version of the client has been written and partially tested, that is what you see in the master branch of this repository. This version is much more robust and flexible and incorporates an object oriented approach much more successfully that the previous version. We do not plan on spending any time developing it right now, but are open to pull requests, and even some collaboration if it is something the community is interested in.
+ - The more important reason is that we have, for the last couple of months, been working on a hosted version of Mobicle. This new version addresses some concerns we, and the community, have had. The 2 most important benefits that come from a hosted solution are security, and portability. As it stands now, your settings are saved only on the browser you are using, and will not persist if your session is destroyed.
+
+>We hope to have the Beta version of the new Mobicle available soon, and are excited to show you some of the more useful features that it can provide. Check out the [Recent News](https://www.controleverything.com/recent-news) on [ControlEverything](https://www.controleverything.com) regularly for updates. If you haven't signed up for our newsletter, you can by signing up for an account, or visiting your existing My Account page.
+ 
 
