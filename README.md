@@ -16,9 +16,9 @@ Oh yeah and have fun!
 [Click here to try it right now from your browser!](http://mobicle.io)
 
 ###Updates and the Future of Mobicle
->The existing version of Mobicle that is available through [mobicle.io](http://mobicle.io), is now sunset. This does not mean we will remove access to it, it just means there is a feature freeze. We've decided to do this for 2 reasons:
+>The existing version of Mobicle that is available through [mobicle.io](http://mobicle.io) is now sunset. This does not mean we will remove access to it, it just means there is a feature freeze. We've decided to do this for 2 reasons:
  - First of all, a newer version of the client has been written and partially tested, that is what you see in the master branch of this repository. This version is much more robust and flexible and incorporates an object oriented approach much more successfully that the previous version. We do not plan on spending any time developing it right now, but are open to pull requests, and even some collaboration if it is something the community is interested in.
- - The more important reason is that we have, for the last couple of months, been working on a hosted version of Mobicle. This new version addresses some concerns we, and the community, have had. The 2 most important benefits that come from a hosted solution are security, and portability. As it stands now, your settings are saved on the browser you are using, and will not persist if your session is destroyed.
+ - The more important reason is that we have, for the last couple of months, been working on a hosted version of Mobicle. This new version addresses some concerns we, and the community, have had. The 2 most important benefits that come from a hosted solution are security, and portability. As it stands now, your settings are saved only on the browser you are using, and will not persist if your session is destroyed.
 
 >We hope to have the Beta version of the new Mobicle available soon, and are excited to show you some of the more useful features that it can provide. Check out the [Recent News](https://www.controleverything.com/recent-news) on [ControlEverything](https://www.controleverything.com) regularly for updates. If you haven't signed up for our newsletter, you can by signing up for an account, or visiting your existing My Account page.
  
