@@ -1,3 +1,5 @@
+>If you've been here before, please check out the [updates](#updates-and-the-future-of-mobicle)
+
 ###What is Mobicle
 >Particle created an amazing product(Spark-Core/Photon/Electron) which builds upon the Arduino architecture bringing cloud capabilities to the platform.  Particle served up IOT capabilities on a silver platter to Arduino users and in doing so made IOT something the average hobbyist/developer could easily digest.  It is a true game changer.  However, one missing link, we felt, has been an interface UI for controlling and monitoring those IOT devices you have worked so hard to create.  That is what Mobicle is all about.
 Mobicle is a web based application built to interface with your Particle module through Particle’s cloud.  Mobicle is built on the cordova framework which lends itself well to many platforms including Android, iOS, Web Browsers, Windows, Blackberry, WEBOS, etc.
