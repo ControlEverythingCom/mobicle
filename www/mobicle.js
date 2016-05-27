@@ -378,7 +378,6 @@
             var json = JSON.stringify(this.eventPublish);
             window.localStorage.setItem('event_publish_buttons', json);
         }
-
         //Check to see if parent list view has child with this id already.  If so we are editing
         var li = $('#eventPublishButtonList li[data-button-index="' + i + '"]');
         if (li.length) {
@@ -636,10 +635,18 @@
             device.updateVariables();
             //window.localStorage.setItem('device_'+device.id+'_buttons','');
             var buttons = window.localStorage.getItem('device_' + device.id + '_buttons');
+            var validButtons = [];
             if (buttons) {
                 device.buttons = $.parseJSON(buttons);
                 for (var i = 0; i < device.buttons.length; i++) {
-                    device.addButton(device.buttons[i], false);
+                    if(device.addButton(device.buttons[i], false)){
+                        validButtons.push(device.buttons[i]);
+                    };
+                }
+                if(device.buttons !== validButtons){
+                    device.buttons = validButtons;
+                    var json = JSON.stringify(device.buttons);
+                    window.localStorage.setItem('device_' + device.id + '_buttons', json);
                 }
             }
             device.loaded();
@@ -741,7 +748,7 @@
     Device.prototype.addButton = function(vals, add) {
         var device = this;
         var id = vals.buttonName.replace(/[^0-9a-zA-Z]/g, '_');
-
+        if(vals.buttonName == "") return false;
         //Check to see if parent list view has child with this id already.  If so we are editing
         if ($('.deviceButtonList', device.page).find($('#' + id)).length) {
             //We are editing.
@@ -798,7 +805,7 @@
             });
             li.parent().listview().listview('refresh');
         }
-
+        return true;
     };
     Device.prototype.deleteButton = function(vals) {
         //Get instance of device object
